@@ -1,0 +1,78 @@
+# Active Task Tracker
+
+## Completed Tasks
+- [x] **Server Permissions Lockdown**:
+  - Backend CloudScript (`handlers.saveServer`, `handlers.deleteServer`): Strictly verify `currentPlayerId === serverMeta.ownerId` or user role permissions before allowing server modifications.
+  - Server profile changes (`name`, `iconUrl`, `description`) require `manage_server`.
+  - Channel creation and deletion require `manage_channels`.
+  - Role creation, modification, and role assignment require `manage_roles`. Non-owners cannot alter the owner's roles.
+  - Member bans require `manage_server`. Non-owners cannot ban the owner or themselves.
+  - Server deletion strictly requires server owner.
+  - Frontend (`ServerSettingsModal.js`): If user lacks `manage_server`, profile inputs are disabled and Save button is hidden. If user lacks `manage_roles`, "+ Create Role" button and role delete buttons are hidden. Ban button only renders for users with `manage_server`. Event listeners guard against unauthorized execution.
+  - Frontend (`Sidebar.js`): Add channel button and delete channel icons only render and activate for users with `manage_channels`.
+- [x] **Disable HMR & WebSockets**: Set `hmr: false` and `ws: false` in `vite.config.js`. Zero WebSockets used.
+- [x] **Auth Modal Close on Sign In & Register**: Fixed `close()` in `AuthModal.js` to clear `container.innerHTML` so the sign-in modal closes and reveals the chat interface.
+- [x] **High-Speed Snappy Polling Engine**: Reduced message poll interval to 400ms. Decoupled metadata polling to an independent 6000ms timer without blocking message delivery.
+- [x] **CloudScript Granular Message Handlers**: Added `handlers.getMessagesSince` / `handlers.getmsgssince` and `handlers.getLastNumberMsgs` / `handlers.getlastnumbermsgs`.
+- [x] **Remove `getFriends` from CloudScript**: Removed `handlers.getFriends` to conserve GitHub API rate limits.
+- [x] **Make `getUserDMs` Fetch Groups**: Updated `handlers.getUserDMs` to include group DMs from both user DM and group registries.
+- [x] **Server Name Uniqueness**: Added server registry validation in `createServer` and `saveServer` to prevent duplicate server names.
+- [x] **Username & Display Name Uniqueness**: Added profiles registry validation in `updateUserProfile` to prevent duplicate usernames across users.
+- [x] **Dedicated Discord-Style Server Settings Container**: Created `src/components/ServerSettingsModal.js` with left sidebar (Server Profile, Roles, Members, Invites, Delete/Leave) and server preview card.
+- [x] **Streamlined Server Creation/Join Modal**: Removed Server Settings tab from `ServerModal.js`.
+- [x] **User Profile Popover & Role Manager**: Created `src/components/UserProfileModal.js` for clicking on members to view profile, message them, and assign/toggle roles if owner or role manager.
+- [x] **Context Persistence**: Updated `src/services/state.js` and `src/main.js` to save and restore the last visited DM, group, channel, or global chat across reloads.
+- [x] **Message Replying & @Mentions**:
+  - Hover action toolbar with Reply button on messages in `MessageList.js`.
+  - Discord-style reply branch with snippet above replied messages.
+  - Interactive reply preview bar with cancel button in `MessageInput.js`.
+  - `@mentions` highlighted in chat stream.
+- [x] **Friend System Overhaul in `MessageList.js`**:
+  - Fixed friend ID resolution (`f.playFabId || f.FriendPlayFabId`) so "Message" and "Remove" work.
+  - Implemented "Pending" friend requests tab with "Accept" and "Decline" actions.
+  - "Add Friend" sends a real friend request without instant adding.
+- [x] **PFP & Profile Display Sync**:
+  - Dynamically updates avatars and display names for all messages using `resolveUser` with `querySelectorAll` updating every message card.
+- [x] **Architecture Documentation**: Updated `map.txt`.
+- [x] **Role Assignment Fix**:
+  - Backend `saveServer` now accepts `assignRoles` (array) instead of `assignRole` (single string).
+  - Frontend `UserProfileModal` sends full role array on toggle, preserving all assigned roles.
+  - `role_admin` holders now bypass permission checks in `Sidebar`, `ServerSettingsModal`, and `UserProfileModal`.
+- [x] **State Merge After Save**:
+  - `ServerSettingsModal` and `Sidebar` now merge `saveServer` response with existing state to preserve `members` and `channels`.
+- [x] **Native PlayFab PFP**:
+  - `updateAvatarUrl` calls PlayFab `UpdateAvatarUrl` API.
+  - `resolveUser` queries `GetPlayerProfile` for display name and avatar URL.
+- [x] **Role Hierarchy & Order Changing**:
+  - `ServerSettingsModal` supports reordering roles (up/down) with positional indices.
+  - `UserProfileModal` enforces role hierarchy: members with `manage_roles` can only assign/remove roles strictly below their highest role and cannot modify users at or above their rank.
+- [x] **Channel Management & Permission Overrides**:
+  - Dedicated Channels tab in `ServerSettingsModal` with channel creation, renaming, and deletion.
+  - Per-channel role permission overrides (`view_channel`, `send_messages`, `manage_channels`) with cyclic toggle states (Inherit / Allow / Deny).
+  - Backend `saveServer` supports `channelOverrides`, `renameChannel`, and cleans up overrides on channel deletion.
+  - `Sidebar.js` filters channels according to `view_channel` overrides.
+  - `MessageInput.js` dynamically disables input and displays notice when `send_messages` is denied.
+- [x] **Fix Sidebar Channels Rendering Bug**:
+  - Restored `canManageChannels` and `sId` variable declarations in `Sidebar.js` to prevent ReferenceError during channel list rendering when active server is selected.
+- [x] **In-App Channel Management UI Integration**:
+  - Replaced browser `window.prompt` on the `+` Create Channel button in `Sidebar.js` with direct routing to the in-app Channel Management interface in `ServerSettingsModal`.
+  - Added dedicated channel settings `⚙` gear buttons next to each channel in the sidebar to directly open that channel's edit form and role permission override matrix.
+- [x] **Strict Channel Message Permission Enforcement**:
+  - Frontend (`MessageInput.js`): Added centralized `canUserSend()` verifying role overrides and base permissions (defaulting non-assigned users to `role_member`). Subscribes to server and profile updates, and guards both input UI and `handleSend()`.
+  - Backend CloudScript (`handlers.sendMessage` in `cloudscript.js`): Validates server membership, checks channel permission overrides (`send_messages` deny/allow), and verifies role `send_messages` permissions before committing message.
+- [x] **Fix CloudScript Syntax**:
+  - Resolved missing closing brace on `params.roles` block in `handlers.saveServer` in `backend/cloudscript.js`. Verified clean compilation with Node.js parser.
+- [x] **Message Editing & Deletion with Permission Controls**:
+  - Backend CloudScript (`handlers.editMessage`): Validates user is the original sender, edits text within 2000 characters, sets `isEdited` flag and timestamp.
+  - Backend CloudScript (`handlers.deleteMessage`): Authorizes deletion if user is author OR has `manage_messages` permission in the channel/server (checking server owner, `role_admin`, channel overrides, and role permissions) OR is group DM owner.
+  - Client Service (`src/services/playfab.js`): Added `editMessage(target, messageId, text)` and `deleteMessage(target, messageId)` API methods.
+  - Frontend (`src/components/MessageList.js`):
+    - Hover action toolbar with Edit button (for author) and Delete button (for author or users with `manage_messages`).
+    - Inline message editor with Escape to cancel, Enter to save, optimistic state update, and `(edited)` indicator.
+    - Optimistic message removal with backend synchronization and stream repolling.
+- [x] **Private Repository Sync & GitHub Pages Compatibility**:
+  - Performed deep regex scan across all source files for private keys, API secrets, and sensitive tokens (verified 0 secrets in client frontend code).
+  - Updated `vite.config.js` with `base: './'` for relative asset paths required by GitHub Pages subpath hosting.
+  - Added automated GitHub Pages deployment workflow `.github/workflows/deploy.yml` on push to `master`.
+  - Configured Git credentials via GitHub CLI and pushed latest codebase to private GitHub repository `axk-coder/pulse-msg`.
+

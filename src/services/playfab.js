@@ -1,0 +1,576 @@
+export const PLAYFAB_TITLE_ID = "133616";
+const PLAYFAB_API_BASE = `https://${PLAYFAB_TITLE_ID}.playfabapi.com/Client`;
+
+class PlayFabService {
+  constructor() {
+    this.sessionTicket = localStorage.getItem("pulse_session_ticket") || null;
+    this.playFabId = localStorage.getItem("pulse_playfab_id") || null;
+    this.currentUser = null;
+    this.lastSendTimestamp = 0;
+    this.userCache = new Map();
+
+    const storedUser = localStorage.getItem("pulse_user");
+    if (storedUser) {
+      try {
+        this.currentUser = JSON.parse(storedUser);
+      } catch {
+        this.currentUser = null;
+      }
+    }
+  }
+
+  isAuthenticated() {
+    return !!(this.sessionTicket && this.currentUser);
+  }
+
+  getSessionTicket() {
+    return this.sessionTicket;
+  }
+
+  getCurrentUser() {
+    return this.currentUser;
+  }
+
+  saveSession(sessionTicket, playFabId, userProfile) {
+    this.sessionTicket = String(sessionTicket || "").trim();
+    this.playFabId = String(playFabId || "").trim();
+    this.currentUser = {
+      playFabId: this.playFabId,
+      username: String(userProfile.username || "").trim().slice(0, 32),
+      displayName: String(userProfile.displayName || userProfile.username || "User").trim().slice(0, 32),
+      email: String(userProfile.email || "").trim().slice(0, 100),
+      avatarUrl: String(userProfile.avatarUrl || "").trim()
+    };
+    localStorage.setItem("pulse_session_ticket", this.sessionTicket);
+    localStorage.setItem("pulse_playfab_id", this.playFabId);
+    localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+    if (this.playFabId) {
+      this.userCache.set(this.playFabId, {
+        displayName: this.currentUser.displayName,
+        avatarUrl: this.currentUser.avatarUrl
+      });
+    }
+  }
+
+  clearSession() {
+    this.sessionTicket = null;
+    this.playFabId = null;
+    this.currentUser = null;
+    localStorage.removeItem("pulse_session_ticket");
+    localStorage.removeItem("pulse_playfab_id");
+    localStorage.removeItem("pulse_user");
+    localStorage.removeItem("pulse_auth_store");
+  }
+
+  saveCredentials(identifier, password) {
+    try {
+      localStorage.setItem("pulse_auth_store", JSON.stringify({
+        identifier: String(identifier || "").trim(),
+        password: String(password || "")
+      }));
+    } catch {}
+  }
+
+  getSavedCredentials() {
+    try {
+      const raw = localStorage.getItem("pulse_auth_store");
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return null;
+  }
+
+  async tryAutoLogin() {
+    if (this.sessionTicket && this.currentUser) {
+      try {
+        await this.post("GetAccountInfo", {}, true);
+        return true;
+      } catch {}
+    }
+    const creds = this.getSavedCredentials();
+    if (creds && creds.identifier && creds.password) {
+      try {
+        await this.login(creds.identifier, creds.password);
+        return true;
+      } catch {}
+    }
+    return false;
+  }
+
+  async post(endpoint, payload, useAuth = false, hasRetried = false) {
+    const url = `${PLAYFAB_API_BASE}/${endpoint}`;
+    const headers = {
+      "Content-Type": "application/json",
+      "X-ReportErrorAsSuccess": "true"
+    };
+
+    if (useAuth && this.sessionTicket) {
+      headers["X-Authentication"] = this.sessionTicket;
+    }
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    if (data.code !== 200) {
+      const errMessage = data.errorMessage || data.status || "PlayFab API Error";
+      if (useAuth && !hasRetried && (data.code === 401 || errMessage.toLowerCase().indexOf("ticket") > -1 || errMessage.toLowerCase().indexOf("authenticated") > -1)) {
+        const reauthed = await this.tryAutoLogin();
+        if (reauthed) {
+          return await this.post(endpoint, payload, useAuth, true);
+        }
+      }
+      const errorObj = new Error(errMessage);
+      errorObj.playFabData = data;
+      throw errorObj;
+    }
+
+    return data.data;
+  }
+
+  async register(username, email, password, displayName) {
+    const cleanUsername = String(username || "").trim().slice(0, 32);
+    const cleanPassword = String(password || "");
+    const cleanEmail = String(email || "").trim().slice(0, 100);
+    const cleanDisplayName = String(displayName || cleanUsername).trim().slice(0, 32);
+
+    if (cleanUsername.length < 3) {
+      throw new Error("Username must be at least 3 characters");
+    }
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      throw new Error("Valid email is required");
+    }
+    if (cleanPassword.length < 6) {
+      throw new Error("Password must be at least 6 characters");
+    }
+
+    const payload = {
+      TitleId: PLAYFAB_TITLE_ID,
+      Username: cleanUsername,
+      Email: cleanEmail,
+      Password: cleanPassword,
+      RequireBothUsernameAndEmail: true,
+      DisplayName: cleanDisplayName
+    };
+
+    const data = await this.post("RegisterPlayFabUser", payload, false);
+    this.saveSession(data.SessionTicket, data.PlayFabId, {
+      username: cleanUsername,
+      displayName: cleanDisplayName,
+      email: cleanEmail,
+      avatarUrl: ""
+    });
+    this.saveCredentials(cleanUsername, cleanPassword);
+
+    try {
+      await this.updateDisplayName(cleanDisplayName);
+    } catch {}
+
+    return this.currentUser;
+  }
+
+  async login(emailOrUsername, password) {
+    const cleanIdentifier = String(emailOrUsername || "").trim().slice(0, 100);
+    const cleanPassword = String(password || "");
+
+    if (!cleanIdentifier || !cleanPassword) {
+      throw new Error("Identifier and password are required");
+    }
+
+    let endpoint = "LoginWithPlayFab";
+    let payload = {
+      TitleId: PLAYFAB_TITLE_ID,
+      Password: cleanPassword,
+      InfoRequestParameters: {
+        GetPlayerProfile: true,
+        ProfileConstraints: {
+          ShowDisplayName: true,
+          ShowAvatarUrl: true
+        }
+      }
+    };
+
+    if (cleanIdentifier.includes("@")) {
+      endpoint = "LoginWithEmailAddress";
+      payload.Email = cleanIdentifier;
+    } else {
+      payload.Username = cleanIdentifier;
+    }
+
+    const data = await this.post(endpoint, payload, false);
+    
+    let displayName = cleanIdentifier.includes("@") ? cleanIdentifier.split("@")[0] : cleanIdentifier;
+    let avatarUrl = "";
+
+    if (data.InfoResultPayload && data.InfoResultPayload.PlayerProfile) {
+      if (data.InfoResultPayload.PlayerProfile.DisplayName) {
+        displayName = data.InfoResultPayload.PlayerProfile.DisplayName;
+      }
+      if (data.InfoResultPayload.PlayerProfile.AvatarUrl) {
+        avatarUrl = data.InfoResultPayload.PlayerProfile.AvatarUrl;
+      }
+    }
+
+    this.saveSession(data.SessionTicket, data.PlayFabId, {
+      username: cleanIdentifier.includes("@") ? cleanIdentifier.split("@")[0] : cleanIdentifier,
+      displayName: displayName,
+      email: cleanIdentifier.includes("@") ? cleanIdentifier : "",
+      avatarUrl: avatarUrl
+    });
+    this.saveCredentials(cleanIdentifier, cleanPassword);
+
+    return this.currentUser;
+  }
+
+  async sendPasswordReset(email) {
+    const cleanEmail = String(email || "").trim().slice(0, 100);
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      throw new Error("Please enter a valid email address");
+    }
+
+    const payload = {
+      TitleId: PLAYFAB_TITLE_ID,
+      Email: cleanEmail
+    };
+
+    return await this.post("SendAccountRecoveryEmail", payload, false);
+  }
+
+  async updateEmail(newEmail) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const cleanEmail = String(newEmail || "").trim().slice(0, 100);
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      throw new Error("Please enter a valid email address");
+    }
+
+    const payload = {
+      EmailAddress: cleanEmail
+    };
+
+    const data = await this.post("AddOrUpdateContactEmail", payload, true);
+    if (this.currentUser) {
+      this.currentUser.email = cleanEmail;
+      localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+    }
+    return data;
+  }
+
+  async updateDisplayName(displayName) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const cleanName = String(displayName || "").trim().slice(0, 32);
+    if (!cleanName) throw new Error("Display name cannot be empty");
+
+    let data = { DisplayName: cleanName };
+    try {
+      data = await this.post("UpdateUserTitleDisplayName", { DisplayName: cleanName }, true);
+    } catch {}
+
+    if (this.currentUser) {
+      this.currentUser.displayName = data.DisplayName || cleanName;
+      localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+      if (this.playFabId) {
+        this.userCache.set(this.playFabId, {
+          displayName: this.currentUser.displayName,
+          avatarUrl: this.currentUser.avatarUrl || ""
+        });
+      }
+    }
+
+    try {
+      await this.executeScript("updateUserProfile", { displayName: cleanName });
+    } catch {}
+
+    return data;
+  }
+
+  async syncCurrentUserProfile() {
+    if (!this.sessionTicket || !this.currentUser) return;
+    try {
+      const data = await this.post("GetPlayerProfile", {
+        PlayFabId: this.playFabId,
+        ProfileConstraints: { ShowDisplayName: true, ShowAvatarUrl: true }
+      }, true);
+      if (data && data.PlayerProfile) {
+        const p = data.PlayerProfile;
+        if (p.DisplayName) this.currentUser.displayName = p.DisplayName;
+        if (p.AvatarUrl) this.currentUser.avatarUrl = p.AvatarUrl;
+        localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+        if (this.playFabId) {
+          this.userCache.set(this.playFabId, {
+            displayName: this.currentUser.displayName,
+            avatarUrl: this.currentUser.avatarUrl || ""
+          });
+        }
+      }
+    } catch {}
+  }
+
+  async updateAvatarUrl(avatarUrl) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const cleanUrl = String(avatarUrl || "").trim().slice(0, 500);
+
+    if (this.currentUser) {
+      this.currentUser.avatarUrl = cleanUrl;
+      localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+      if (this.playFabId) {
+        this.userCache.set(this.playFabId, {
+          displayName: this.currentUser.displayName,
+          avatarUrl: cleanUrl
+        });
+      }
+    }
+
+    try {
+      await this.post("UpdateAvatarUrl", { ImageUrl: cleanUrl }, true);
+    } catch {}
+
+    try {
+      await this.executeScript("updateUserProfile", { avatarUrl: cleanUrl });
+    } catch {}
+
+    return cleanUrl;
+  }
+
+  async resolveUser(playFabId) {
+    if (!playFabId) return { displayName: "User", avatarUrl: "" };
+    if (this.currentUser && this.currentUser.playFabId === playFabId) {
+      return {
+        displayName: this.currentUser.displayName,
+        avatarUrl: this.currentUser.avatarUrl || ""
+      };
+    }
+    if (this.userCache.has(playFabId)) {
+      const cached = this.userCache.get(playFabId);
+      if (cached && (cached.avatarUrl || cached.displayName !== "Member")) {
+        return cached;
+      }
+    }
+
+    try {
+      const res = await this.post("GetPlayerProfile", {
+        PlayFabId: playFabId,
+        ProfileConstraints: {
+          ShowDisplayName: true,
+          ShowAvatarUrl: true
+        }
+      }, true);
+
+      const profile = res && res.PlayerProfile ? res.PlayerProfile : {};
+      if (profile.DisplayName || profile.AvatarUrl) {
+        const userData = {
+          displayName: profile.DisplayName || "Member",
+          avatarUrl: profile.AvatarUrl || ""
+        };
+        this.userCache.set(playFabId, userData);
+        return userData;
+      }
+    } catch {}
+
+    try {
+      const cloudRes = await this.executeScript("getUserProfile", { userId: playFabId });
+      if (cloudRes && cloudRes.success && cloudRes.profile && (cloudRes.profile.displayName || cloudRes.profile.avatarUrl)) {
+        const userData = {
+          displayName: cloudRes.profile.displayName || "Member",
+          avatarUrl: cloudRes.profile.avatarUrl || ""
+        };
+        this.userCache.set(playFabId, userData);
+        return userData;
+      }
+    } catch {}
+
+    const fallback = { displayName: "Member", avatarUrl: "" };
+    this.userCache.set(playFabId, fallback);
+    return fallback;
+  }
+
+  async getFriendsList() {
+    if (!this.sessionTicket) return [];
+    try {
+      const cloudRes = await this.executeScript("getFriends", {});
+      if (cloudRes && cloudRes.success && Array.isArray(cloudRes.friends)) {
+        cloudRes.friends.forEach(f => {
+          this.userCache.set(f.playFabId, {
+            displayName: f.displayName,
+            avatarUrl: f.avatarUrl
+          });
+        });
+        return cloudRes.friends;
+      }
+    } catch {}
+
+    try {
+      const res = await this.post("GetFriendsList", {
+        IncludeFacebookFriends: false,
+        IncludeSteamFriends: false,
+        ProfileConstraints: {
+          ShowDisplayName: true,
+          ShowAvatarUrl: true
+        }
+      }, true);
+
+      const friends = (res.Friends || []).map(f => {
+        const prof = f.Profile || {};
+        const friendData = {
+          playFabId: f.FriendPlayFabId,
+          displayName: prof.DisplayName || f.Username || "Friend",
+          avatarUrl: prof.AvatarUrl || ""
+        };
+        this.userCache.set(friendData.playFabId, {
+          displayName: friendData.displayName,
+          avatarUrl: friendData.avatarUrl
+        });
+        return friendData;
+      });
+
+      return friends;
+    } catch {
+      return [];
+    }
+  }
+
+  async sendFriendRequest(target) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const cleanTarget = String(target || "").trim();
+    if (!cleanTarget) throw new Error("Username or ID required");
+    const res = await this.executeScript("sendFriendRequest", { target: cleanTarget });
+    if (!res || !res.success) {
+      throw new Error(res?.error || "Failed to send friend request");
+    }
+    return res;
+  }
+
+  async getFriendRequests() {
+    if (!this.sessionTicket) return [];
+    const res = await this.executeScript("getFriendRequests", {});
+    return (res && res.success && Array.isArray(res.requests)) ? res.requests : [];
+  }
+
+  async respondFriendRequest(fromId, action) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const res = await this.executeScript("respondFriendRequest", { fromId, action });
+    if (!res || !res.success) {
+      throw new Error(res?.error || "Failed to respond to request");
+    }
+    return res;
+  }
+
+  async addFriend(identifier) {
+    return await this.sendFriendRequest(identifier);
+  }
+
+  async removeFriend(friendPlayFabId) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    try {
+      await this.executeScript("removeFriend", { friendId: friendPlayFabId });
+    } catch {}
+    try {
+      await this.post("RemoveFriend", { FriendPlayFabId: friendPlayFabId }, true);
+    } catch {}
+    return { success: true };
+  }
+
+  async deleteServer(serverId) {
+    return await this.executeScript("deleteServer", { serverId });
+  }
+
+  async leaveServer(serverId) {
+    return await this.executeScript("leaveServer", { serverId });
+  }
+
+  async executeScript(functionName, functionParameter = {}) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const payload = {
+      FunctionName: functionName,
+      FunctionParameter: functionParameter,
+      GeneratePlayStreamEvent: false
+    };
+    const res = await this.post("ExecuteCloudScript", payload, true);
+    if (res && res.FunctionResult) {
+      return res.FunctionResult;
+    }
+    return { success: false };
+  }
+
+  async getMessages(target) {
+    return await this.executeScript("getMessages", target);
+  }
+
+  async sendMessage(target, text) {
+    const now = Date.now();
+    if (now - this.lastSendTimestamp < 1000) {
+      throw new Error("Sending too fast. Please wait a moment.");
+    }
+    this.lastSendTimestamp = now;
+
+    const payload = Object.assign({}, target, {
+      text: String(text || "").trim().slice(0, 2000)
+    });
+
+    return await this.executeScript("sendMessage", payload);
+  }
+
+  async editMessage(target, messageId, text) {
+    const payload = Object.assign({}, target, {
+      messageId: messageId,
+      text: String(text || "").trim().slice(0, 2000)
+    });
+    return await this.executeScript("editMessage", payload);
+  }
+
+  async deleteMessage(target, messageId) {
+    const payload = Object.assign({}, target, {
+      messageId: messageId
+    });
+    return await this.executeScript("deleteMessage", payload);
+  }
+
+  async getUserServers() {
+    const res = await this.executeScript("getUserServers", {});
+    return res.servers || [];
+  }
+
+  async createServer(name, iconUrl = "") {
+    return await this.executeScript("createServer", { name, iconUrl });
+  }
+
+  async getServer(serverId) {
+    return await this.executeScript("getServer", { serverId });
+  }
+
+  async saveServer(serverId, updateData) {
+    return await this.executeScript("saveServer", Object.assign({ serverId }, updateData));
+  }
+
+  async joinServer(serverId) {
+    return await this.executeScript("joinServer", { serverId });
+  }
+
+  async getUserDMs() {
+    const res = await this.executeScript("getUserDMs", {});
+    return res.dms || [];
+  }
+
+  async createOrGetDM(partnerId) {
+    return await this.executeScript("createOrGetDM", { partnerId });
+  }
+
+  async createGroupDM(name, memberIds) {
+    return await this.executeScript("createGroupDM", { name, memberIds });
+  }
+
+  async manageGroupDM(dmId, action, extraParams = {}) {
+    return await this.executeScript("manageGroupDM", Object.assign({ dmId, action }, extraParams));
+  }
+
+  async getGroupMeta(dmId) {
+    return await this.executeScript("getGroupMeta", { dmId });
+  }
+}
+
+export const playFabService = new PlayFabService();

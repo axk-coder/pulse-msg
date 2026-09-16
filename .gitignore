@@ -1,0 +1,8 @@
+node_modules
+dist
+map.txt
+*.log
+.DS_Store
+backend/
+backend/**
+
