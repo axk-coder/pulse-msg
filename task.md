@@ -75,4 +75,6 @@
   - Updated `vite.config.js` with `base: './'` for relative asset paths required by GitHub Pages subpath hosting.
   - Added automated GitHub Pages deployment workflow `.github/workflows/deploy.yml` on push to `master`.
   - Configured Git credentials via GitHub CLI and pushed latest codebase to private GitHub repository `axk-coder/pulse-msg`.
+  - Enabled GitHub Actions Pages builder and verified automated CI/CD deployment succeeded at `https://axk-coder.github.io/pulse-msg/`.
+
 
