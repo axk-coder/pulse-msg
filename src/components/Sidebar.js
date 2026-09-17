@@ -77,10 +77,10 @@ export class Sidebar {
               <button class="user-profile-btn" id="sidebar-user-btn" title="User Settings">
                 <div class="avatar-wrapper" style="position: relative;">
                   <div class="avatar" id="footer-user-avatar">
-                    ${user.avatarUrl 
-                      ? `<img src="${this.escapeHtml(user.avatarUrl)}" class="avatar-img" alt="" />`
-                      : user.displayName.charAt(0).toUpperCase()
-                    }
+                    ${user.avatarUrl
+        ? `<img src="${this.escapeHtml(user.avatarUrl)}" class="avatar-img" alt="" />`
+        : user.displayName.charAt(0).toUpperCase()
+      }
                   </div>
                   <div class="presence-badge-dot dot-${user.presence || 'online'}" id="footer-presence-dot"></div>
                 </div>
@@ -92,17 +92,15 @@ export class Sidebar {
 
               <button class="icon-btn" id="sidebar-sound-btn" title="${soundSynth.enabled ? 'Mute Sound' : 'Unmute Sound'}">
                 <svg id="sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                  ${soundSynth.enabled 
-                    ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>'
-                    : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>'
-                  }
+                  ${soundSynth.enabled
+        ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>'
+        : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>'
+      }
                 </svg>
               </button>
             </div>
 
             <div class="sidebar-footer-links">
-              <button type="button" class="footer-link-btn" id="footer-shortcuts-btn">Keys</button>
-              <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-privacy-btn">Privacy</button>
               <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-terms-btn">Terms</button>
@@ -185,7 +183,7 @@ export class Sidebar {
       soundBtn.title = isNowEnabled ? 'Mute Sound' : 'Unmute Sound';
       const icon = this.container.querySelector('#sound-icon');
       if (icon) {
-        icon.innerHTML = isNowEnabled 
+        icon.innerHTML = isNowEnabled
           ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>'
           : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
       }
@@ -227,7 +225,7 @@ export class Sidebar {
         const sId = s.serverId || s.id;
         const initial = (s.name || 'S').charAt(0).toUpperCase();
         const isActive = state.activeContext === 'server' && state.activeServerId === sId;
-        const content = s.iconUrl 
+        const content = s.iconUrl
           ? `<img src="${this.escapeHtml(s.iconUrl)}" alt="" style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;" />`
           : `<span>${this.escapeHtml(initial)}</span>`;
 
@@ -254,7 +252,7 @@ export class Sidebar {
                 const updated = Object.assign({}, current, res.server);
                 appState.setActiveServer(updated);
               }
-            } catch {}
+            } catch { }
           }
         });
       });
@@ -420,7 +418,7 @@ export class Sidebar {
               const merged = Object.assign({}, current, res.server, { channels: res.server.channels || currentList });
               appState.setActiveServer(merged);
             }
-          } catch {}
+          } catch { }
         };
 
         panelScroll.querySelectorAll('.btn-channel-up-mini').forEach(upBtn => {
@@ -525,10 +523,10 @@ export class Sidebar {
               ${dms.length === 0 ? `
                 <li style="padding: 8px 12px; font-size: 12px; color: var(--text-muted);">No messages yet</li>
               ` : dms.map(dm => {
-                const isActive = state.activeDM && state.activeDM.dmId === dm.dmId;
-                if (dm.isGroup) {
-                  const gName = dm.name || "Group Chat";
-                  return `
+          const isActive = state.activeDM && state.activeDM.dmId === dm.dmId;
+          if (dm.isGroup) {
+            const gName = dm.name || "Group Chat";
+            return `
                     <li class="channel-item dm-item ${isActive ? 'active' : ''}" data-dm-id="${this.escapeHtml(dm.dmId)}" data-is-group="true" data-name="${this.escapeHtml(gName)}">
                       <div class="channel-item-left">
                         <div class="dm-avatar-mini" style="display: flex; align-items: center; justify-content: center;">
@@ -543,19 +541,19 @@ export class Sidebar {
                       </div>
                     </li>
                   `;
-                }
+          }
 
-                const partnerProfile = this.partnerProfiles.get(dm.partnerId) || { displayName: "User", avatarUrl: "", presence: "offline", statusMessage: "" };
-                const initial = partnerProfile.displayName.charAt(0).toUpperCase();
+          const partnerProfile = this.partnerProfiles.get(dm.partnerId) || { displayName: "User", avatarUrl: "", presence: "offline", statusMessage: "" };
+          const initial = partnerProfile.displayName.charAt(0).toUpperCase();
 
-                return `
+          return `
                   <li class="channel-item dm-item ${isActive ? 'active' : ''}" data-dm-id="${this.escapeHtml(dm.dmId)}" data-partner-id="${this.escapeHtml(dm.partnerId)}">
                     <div class="channel-item-left">
                       <div class="dm-avatar-mini" style="position: relative;">
-                        ${partnerProfile.avatarUrl 
-                          ? `<img src="${this.escapeHtml(partnerProfile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
-                          : initial
-                        }
+                        ${partnerProfile.avatarUrl
+              ? `<img src="${this.escapeHtml(partnerProfile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
+              : initial
+            }
                         <div class="presence-badge-dot dot-${partnerProfile.presence || 'offline'}"></div>
                       </div>
                       <div style="display: flex; flex-direction: column; overflow: hidden;">
@@ -565,7 +563,7 @@ export class Sidebar {
                     </div>
                   </li>
                 `;
-              }).join('')}
+        }).join('')}
             </ul>
           </div>
         `;

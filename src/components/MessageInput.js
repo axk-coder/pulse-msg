@@ -645,7 +645,7 @@ export class MessageInput {
     try {
       await playFabService.sendMessage(sendPayload, text);
       pollingEngine.pollNow();
-    } catch {} finally {
+    } catch { } finally {
       this.isSending = false;
       this.sendBtn.disabled = false;
       this.textarea.focus();
@@ -706,7 +706,7 @@ export class MessageInput {
     try {
       await playFabService.sendMessage(sendPayload, cleanText);
       pollingEngine.pollNow();
-    } catch {} finally {
+    } catch { } finally {
       this.isSending = false;
       this.sendBtn.disabled = false;
     }
