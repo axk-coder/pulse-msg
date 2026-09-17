@@ -525,74 +525,89 @@ class PlayFabService {
         }
       }, true);
 
-      const friends = (res.Friends || []).map(f => {
+      const rawFriends = res.Friends || [];
+      const confirmedFriends = [];
+      const pendingIncoming = [];
+      const pendingOutgoing = [];
+
+      for (const f of rawFriends) {
         const prof = f.Profile || {};
+        const tags = Array.isArray(f.Tags) ? f.Tags : [];
         const friendData = {
           playFabId: f.FriendPlayFabId,
           displayName: prof.DisplayName || f.TitleDisplayName || f.Username || "Friend",
           avatarUrl: prof.AvatarUrl || "",
-          username: f.Username || ""
+          username: f.Username || "",
+          tags: tags
         };
+
         this.userCache.set(friendData.playFabId, {
           displayName: friendData.displayName,
           avatarUrl: friendData.avatarUrl,
           username: friendData.username
         });
-        return friendData;
-      });
 
-      return friends;
+        if (tags.includes("request_received")) {
+          pendingIncoming.push({
+            fromId: friendData.playFabId,
+            fromName: friendData.displayName,
+            fromAvatar: friendData.avatarUrl
+          });
+        } else if (tags.includes("request_sent")) {
+          pendingOutgoing.push(friendData);
+        } else {
+          confirmedFriends.push(friendData);
+        }
+      }
+
+      this._cachedIncomingRequests = pendingIncoming;
+      this._cachedOutgoingRequests = pendingOutgoing;
+      return confirmedFriends;
     } catch {
       return [];
     }
   }
 
   async addFriend(identifier) {
-    if (!this.sessionTicket) throw new Error("Not authenticated");
-    const cleanTarget = String(identifier || "").trim();
-    if (!cleanTarget) throw new Error("Username, Email, or PlayFab ID required");
-
-    let payload = {};
-    if (cleanTarget.includes("@")) {
-      payload = { FriendEmail: cleanTarget };
-    } else if (/^[0-9A-Fa-f]{14,18}$/i.test(cleanTarget)) {
-      payload = { FriendPlayFabId: cleanTarget };
-    } else {
-      payload = { FriendUsername: cleanTarget };
-    }
-
-    try {
-      const res = await this.post("AddFriend", payload, true);
-      return { success: true, ...res };
-    } catch (err) {
-      if (!payload.FriendTitleDisplayName && !cleanTarget.includes("@")) {
-        try {
-          const res2 = await this.post("AddFriend", { FriendTitleDisplayName: cleanTarget }, true);
-          return { success: true, ...res2 };
-        } catch {}
-      }
-      throw err;
-    }
+    return await this.sendFriendRequest(identifier);
   }
 
   async sendFriendRequest(target) {
-    return await this.addFriend(target);
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const cleanTarget = String(target || "").trim();
+    if (!cleanTarget) throw new Error("Username or ID required");
+    const res = await this.executeScript("sendFriendRequest", { target: cleanTarget });
+    if (!res || !res.success) {
+      throw new Error(res?.error || "Failed to send friend request");
+    }
+    return res;
   }
 
   async getFriendRequests() {
-    return [];
+    if (this._cachedIncomingRequests) {
+      return this._cachedIncomingRequests;
+    }
+    await this.getFriendsList();
+    return this._cachedIncomingRequests || [];
   }
 
   async respondFriendRequest(fromId, action) {
-    if (action === "accept") {
-      return await this.addFriend(fromId);
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const res = await this.executeScript("respondFriendRequest", { fromId, action });
+    if (!res || !res.success) {
+      throw new Error(res?.error || "Failed to respond to request");
     }
-    return { success: true };
+    return res;
   }
 
   async removeFriend(friendPlayFabId) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
-    await this.post("RemoveFriend", { FriendPlayFabId: friendPlayFabId }, true);
+    try {
+      await this.executeScript("removeFriend", { friendId: friendPlayFabId });
+    } catch {}
+    try {
+      await this.post("RemoveFriend", { FriendPlayFabId: friendPlayFabId }, true);
+    } catch {}
     return { success: true };
   }
 

@@ -10,14 +10,18 @@ export class FriendsModal {
     this.isLoading = false;
     this.error = null;
     this.success = null;
+    this.pendingRequests = [];
     this.render();
   }
 
-  open(tab = 'list') {
+  async open(tab = 'list') {
     this.tab = tab;
     this.isOpen = true;
     this.error = null;
     this.success = null;
+    try {
+      this.pendingRequests = await playFabService.getFriendRequests();
+    } catch {}
     this.render();
   }
 
@@ -53,6 +57,7 @@ export class FriendsModal {
           <div class="modal-body">
             <div class="auth-tabs" style="margin-bottom: 12px;">
               <button type="button" class="auth-tab ${this.tab === 'list' ? 'active' : ''}" id="tab-fr-list">All Friends (${friends.length})</button>
+              <button type="button" class="auth-tab ${this.tab === 'pending' ? 'active' : ''}" id="tab-fr-pending">Pending ${this.pendingRequests.length > 0 ? `(${this.pendingRequests.length})` : ''}</button>
               <button type="button" class="auth-tab ${this.tab === 'add' ? 'active' : ''}" id="tab-fr-add">Add Friend</button>
             </div>
 
@@ -81,6 +86,36 @@ export class FriendsModal {
                         <div style="display: flex; gap: 6px;">
                           <button type="button" class="form-btn-submit msg-friend-btn" data-friend-id="${this.escapeHtml(f.playFabId)}" style="width: auto; padding: 4px 10px; margin: 0; font-size: 12px;">Message</button>
                           <button type="button" class="footer-link-btn remove-friend-btn" data-friend-id="${this.escapeHtml(f.playFabId)}" style="color: var(--text-muted); font-size: 12px; padding: 4px 6px;">Remove</button>
+                        </div>
+                      </li>
+                    `).join('')}
+                  </ul>
+                `}
+              </div>
+            ` : ''}
+
+            ${this.tab === 'pending' ? `
+              <div class="friends-list-container" style="max-height: 320px; overflow-y: auto;">
+                ${this.pendingRequests.length === 0 ? `
+                  <div style="text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 13px;">
+                    No pending friend requests.
+                  </div>
+                ` : `
+                  <ul style="list-style: none; padding: 0; margin: 0;">
+                    ${this.pendingRequests.map(r => `
+                      <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); margin-bottom: 6px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: #222222; border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            ${r.fromAvatar 
+                              ? `<img src="${this.escapeHtml(r.fromAvatar)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
+                              : `<span style="font-size: 13px; font-weight: 700; color: #ffffff;">${(r.fromName || 'U').charAt(0).toUpperCase()}</span>`
+                            }
+                          </div>
+                          <span style="font-weight: 600; font-size: 13px;">${this.escapeHtml(r.fromName || 'User')}</span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                          <button type="button" class="form-btn-submit accept-req-btn" data-from-id="${this.escapeHtml(r.fromId)}" style="width: auto; padding: 4px 10px; margin: 0; font-size: 12px;">Accept</button>
+                          <button type="button" class="footer-link-btn decline-req-btn" data-from-id="${this.escapeHtml(r.fromId)}" style="color: var(--text-muted); font-size: 12px; padding: 4px 6px;">Decline</button>
                         </div>
                       </li>
                     `).join('')}
@@ -120,6 +155,17 @@ export class FriendsModal {
       this.render();
     });
 
+    const tabPending = this.container.querySelector('#tab-fr-pending');
+    tabPending?.addEventListener('click', async () => {
+      this.tab = 'pending';
+      this.error = null;
+      this.success = null;
+      try {
+        this.pendingRequests = await playFabService.getFriendRequests();
+      } catch {}
+      this.render();
+    });
+
     const tabAdd = this.container.querySelector('#tab-fr-add');
     tabAdd?.addEventListener('click', () => {
       this.tab = 'add';
@@ -140,13 +186,13 @@ export class FriendsModal {
       this.render();
 
       try {
-        await playFabService.addFriend(val);
-        this.success = 'Friend added successfully';
+        await playFabService.sendFriendRequest(val);
+        this.success = 'Friend request sent successfully';
         const friends = await playFabService.getFriendsList();
         appState.setFriends(friends);
         if (input) input.value = '';
       } catch (e) {
-        this.error = e.message || 'Failed to add friend';
+        this.error = e.message || 'Failed to send friend request';
       } finally {
         this.isLoading = false;
         this.render();
@@ -160,6 +206,45 @@ export class FriendsModal {
         if (friendId) {
           this.close();
           await this.callbacks.onOpenDM(friendId);
+        }
+      });
+    });
+
+    const acceptBtns = this.container.querySelectorAll('.accept-req-btn');
+    acceptBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const fromId = btn.getAttribute('data-from-id');
+        if (!fromId) return;
+
+        try {
+          await playFabService.respondFriendRequest(fromId, 'accept');
+          const friends = await playFabService.getFriendsList();
+          appState.setFriends(friends);
+          this.pendingRequests = await playFabService.getFriendRequests();
+          this.success = 'Friend request accepted';
+          this.render();
+        } catch (e) {
+          this.error = e.message || 'Failed to accept request';
+          this.render();
+        }
+      });
+    });
+
+    const declineBtns = this.container.querySelectorAll('.decline-req-btn');
+    declineBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const fromId = btn.getAttribute('data-from-id');
+        if (!fromId) return;
+
+        try {
+          await playFabService.respondFriendRequest(fromId, 'decline');
+          const friends = await playFabService.getFriendsList();
+          appState.setFriends(friends);
+          this.pendingRequests = await playFabService.getFriendRequests();
+          this.render();
+        } catch (e) {
+          this.error = e.message || 'Failed to decline request';
+          this.render();
         }
       });
     });
