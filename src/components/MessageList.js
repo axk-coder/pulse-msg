@@ -108,6 +108,8 @@ export class MessageList {
 
   formatMessageWithEmbeds(rawText) {
     if (!rawText) return { textHtml: '', embedsHtml: '' };
+    const embeds = [];
+    const handledUrls = new Set();
     const text = String(rawText);
     let escaped = this.escapeHtml(text);
 

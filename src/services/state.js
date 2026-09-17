@@ -56,7 +56,15 @@ class StateStore {
       return "global_chat";
     }
     if (this.state.activeContext === "dm" && this.state.activeDM) {
-      return this.state.activeDM.dmId;
+      if (this.state.activeDM.dmId) {
+        return this.state.activeDM.dmId;
+      }
+      const myId = playFabService.getCurrentUser()?.playFabId;
+      if (myId && this.state.activeDM.partnerId) {
+        const p = this.state.activeDM.partnerId;
+        return (myId < p) ? `dm_${myId}_${p}` : `dm_${p}_${myId}`;
+      }
+      return "dm_default";
     }
     if (this.state.activeContext === "server" && this.state.activeServerId) {
       const ch = this.state.activeChannelId || "chat";
@@ -70,8 +78,14 @@ class StateStore {
       return { isGlobal: true };
     }
     if (this.state.activeContext === "dm" && this.state.activeDM) {
+      const myId = playFabService.getCurrentUser()?.playFabId;
+      let dId = this.state.activeDM.dmId;
+      if (!dId && myId && this.state.activeDM.partnerId) {
+        const p = this.state.activeDM.partnerId;
+        dId = (myId < p) ? `dm_${myId}_${p}` : `dm_${p}_${myId}`;
+      }
       return {
-        dmId: this.state.activeDM.dmId,
+        dmId: dId,
         partnerId: this.state.activeDM.partnerId,
         isGroup: !!this.state.activeDM.isGroup
       };

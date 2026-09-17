@@ -211,10 +211,18 @@ export class Sidebar {
         btn.addEventListener('click', async () => {
           const sId = btn.getAttribute('data-server-id');
           if (sId) {
-            const res = await playFabService.getServer(sId);
-            if (res && res.server) {
-              appState.setActiveServer(res.server);
-            }
+            const currentServers = appState.getState().servers || [];
+            const cachedServer = currentServers.find(s => (s.serverId || s.id) === sId) || { id: sId, serverId: sId, name: 'Server', channels: [{ id: 'chat', name: 'chat' }] };
+            appState.setActiveServer(cachedServer);
+            appState.toggleMobileSidebar(false);
+            try {
+              const res = await playFabService.getServer(sId);
+              if (res && res.server) {
+                const current = appState.getState().activeServer;
+                const updated = Object.assign({}, current, res.server);
+                appState.setActiveServer(updated);
+              }
+            } catch {}
           }
         });
       });

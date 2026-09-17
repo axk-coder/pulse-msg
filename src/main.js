@@ -232,13 +232,20 @@ class PulseApp {
 
   async openDirectMessage(partnerId) {
     if (!partnerId) return;
+    const myId = playFabService.getCurrentUser()?.playFabId;
+    let dmId = null;
+    if (myId) {
+      dmId = (myId < partnerId) ? `dm_${myId}_${partnerId}` : `dm_${partnerId}_${myId}`;
+    }
+    appState.setActiveDM({ dmId: dmId || `dm_${partnerId}`, partnerId });
+    pollingEngine.pollNow();
+
     try {
       const res = await playFabService.createOrGetDM(partnerId);
       if (res && res.dmId) {
-        appState.setActiveDM({ dmId: res.dmId, partnerId: partnerId });
+        appState.setActiveDM({ dmId: res.dmId, partnerId });
         const dms = await playFabService.getUserDMs();
         appState.setDMs(dms);
-        pollingEngine.pollNow();
       }
     } catch {}
   }

@@ -553,11 +553,11 @@ class PlayFabService {
             fromName: friendData.displayName,
             fromAvatar: friendData.avatarUrl
           });
-        } else if (tags.includes("request_sent")) {
-          pendingOutgoing.push(friendData);
-        } else {
-          confirmedFriends.push(friendData);
         }
+        if (tags.includes("request_sent")) {
+          pendingOutgoing.push(friendData);
+        }
+        confirmedFriends.push(friendData);
       }
 
       this._cachedIncomingRequests = pendingIncoming;
