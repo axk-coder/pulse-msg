@@ -24,6 +24,9 @@ class PulseApp {
   }
 
   async init() {
+    const savedTheme = localStorage.getItem('pulse_theme') || 'onyx';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
     this.root.innerHTML = `
       <div class="cloud-loading-bar" id="cloud-loading-bar"></div>
       <div class="pulse-layout" id="pulse-main-layout" style="display: none;">

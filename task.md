@@ -119,3 +119,6 @@
 - [x] **Settings Modal Multi-Tab Redesign**:
   - Redesigned `SettingsModal.js` with structured tabs: Profile (Presence, Status message, Profile picture URL, Display name, Live preview), Account (Account overview, Email management, Session sign out), Preferences (Sound & Audio toggle, Grayscale theme status), and Policies.
   - Updated `LegalModal.js` Privacy Policy and Terms of Service to explicitly state that the application is not made, designed, or intended to bypass network blocks or firewalls.
+- [x] **Multi-Theme Grayscale Suite**:
+  - Added 5 themes in `variables.css` adhering to strict grayscale aesthetic: Onyx Dark (Default), Midnight Pitch (AMOLED pure black), Graphite Carbon (Cool dark gray), Ash & Steel (High-contrast charcoal), and Slate Monochrome.
+  - Integrated live theme selector grid with swatches in Settings Preferences tab with instant application and localStorage persistence.

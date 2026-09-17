@@ -8,6 +8,7 @@ export class SettingsModal {
     this.callbacks = { onLogout, onProfileUpdated, onOpenLegal, onOpenCredits };
     this.isOpen = false;
     this.tab = 'profile';
+    this.currentTheme = localStorage.getItem('pulse_theme') || 'onyx';
     this.isLoading = false;
     this.message = null;
     this.error = null;
@@ -208,12 +209,30 @@ export class SettingsModal {
                   </button>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-                  <div style="display: flex; flex-direction: column;">
-                    <span style="font-size: 14px; font-weight: 600; color: #ffffff;">Color Scheme</span>
-                    <span style="font-size: 11px; color: var(--text-muted);">Strict grayscale neutral dark interface</span>
+                <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px; font-weight: 600; color: #ffffff;">Grayscale Themes</span>
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">${(this.currentTheme || 'onyx').toUpperCase()}</span>
                   </div>
-                  <span style="font-size: 11px; font-weight: 700; color: #ffffff; background: #222222; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border-medium);">Grayscale Dark</span>
+                  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                    ${[
+                      { key: 'onyx', name: 'Onyx Dark', desc: 'Neutral dark mode', preview: '#121212', border: '#262626' },
+                      { key: 'amoled', name: 'Midnight Pitch', desc: 'Pure black AMOLED', preview: '#000000', border: '#1a1a1a' },
+                      { key: 'graphite', name: 'Graphite Carbon', desc: 'Deep cool gray', preview: '#17191b', border: '#2a2e32' },
+                      { key: 'ash', name: 'Ash & Steel', desc: 'High-contrast charcoal', preview: '#1d1d1d', border: '#303030' },
+                      { key: 'slate', name: 'Slate Monochrome', desc: 'Matte slate balance', preview: '#15181a', border: '#292f34' }
+                    ].map(t => `
+                      <button type="button" class="theme-select-btn ${this.currentTheme === t.key ? 'active' : ''}" data-theme-key="${t.key}" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); border: 1px solid ${this.currentTheme === t.key ? '#ffffff' : 'var(--border-medium)'}; background: ${t.preview}; cursor: pointer; text-align: left; transition: border-color 0.15s ease;">
+                        <div style="width: 16px; height: 16px; border-radius: 50%; background: ${t.preview}; border: 2px solid ${this.currentTheme === t.key ? '#ffffff' : t.border}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                          ${this.currentTheme === t.key ? '<div style="width: 6px; height: 6px; border-radius: 50%; background: #ffffff;"></div>' : ''}
+                        </div>
+                        <div style="display: flex; flex-direction: column; overflow: hidden;">
+                          <span style="font-size: 12px; font-weight: 600; color: #ffffff;">${t.name}</span>
+                          <span style="font-size: 10px; color: #888888;">${t.desc}</span>
+                        </div>
+                      </button>
+                    `).join('')}
+                  </div>
                 </div>
               </div>
             ` : ''}
@@ -393,6 +412,19 @@ export class SettingsModal {
     audioToggle?.addEventListener('click', () => {
       const isEnabled = soundSynth.toggle();
       audioToggle.textContent = isEnabled ? 'Enabled' : 'Disabled';
+    });
+
+    const themeBtns = this.container.querySelectorAll('.theme-select-btn');
+    themeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const themeKey = btn.getAttribute('data-theme-key');
+        if (themeKey) {
+          this.currentTheme = themeKey;
+          document.documentElement.setAttribute('data-theme', themeKey);
+          localStorage.setItem('pulse_theme', themeKey);
+          this.render();
+        }
+      });
     });
 
     const openPrivacyBtn = this.container.querySelector('#set-open-privacy-btn');
