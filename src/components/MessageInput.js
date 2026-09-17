@@ -151,6 +151,10 @@ export class MessageInput {
           </div>
           <div class="gif-results-grid" id="gif-results-grid"></div>
         </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 4px; padding: 0 4px;">
+          <span id="char-counter" style="font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); transition: color 0.15s ease;"></span>
+        </div>
       </div>
     `;
 
@@ -167,6 +171,7 @@ export class MessageInput {
     this.gifPopover = this.container.querySelector('#gif-popover');
     this.gifGrid = this.container.querySelector('#gif-results-grid');
     this.gifSearchInput = this.container.querySelector('#gif-search-input');
+    this.charCounter = this.container.querySelector('#char-counter');
     this.replyBar = this.container.querySelector('#reply-preview-bar');
     this.replyText = this.container.querySelector('#reply-preview-text');
     this.cancelReplyBtn = this.container.querySelector('#cancel-reply-btn');
@@ -182,6 +187,15 @@ export class MessageInput {
     this.textarea.addEventListener('input', () => {
       this.textarea.style.height = 'auto';
       this.textarea.style.height = `${Math.min(this.textarea.scrollHeight, 120)}px`;
+      const len = this.textarea.value.length;
+      if (this.charCounter) {
+        if (len > 1500) {
+          this.charCounter.textContent = `${len}/2000`;
+          this.charCounter.style.color = len >= 2000 ? '#f43f5e' : (len >= 1800 ? '#f59e0b' : 'var(--text-muted)');
+        } else {
+          this.charCounter.textContent = '';
+        }
+      }
     });
 
     this.textarea.addEventListener('keydown', (e) => {
@@ -481,6 +495,7 @@ export class MessageInput {
 
     this.textarea.value = '';
     this.textarea.style.height = 'auto';
+    if (this.charCounter) this.charCounter.textContent = '';
     this.sendBtn.disabled = true;
     this.isSending = true;
     this.lastSentTime = now;

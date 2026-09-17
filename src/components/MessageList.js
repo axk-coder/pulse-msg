@@ -499,15 +499,21 @@ export class MessageList {
 
         html += `
           <div class="message-card" data-msg-id="${this.escapeHtml(msg.id)}" data-sender-id="${this.escapeHtml(msg.senderId)}" style="position: relative;">
-            <div class="message-hover-actions" style="position: absolute; right: 12px; top: -10px; background: #1c1c1c; border: 1px solid #333333; border-radius: 4px; padding: 2px 4px; display: none; gap: 4px; z-index: 5;">
-              <button type="button" class="btn-reply-msg" data-msg-id="${this.escapeHtml(msg.id)}" data-sender-id="${this.escapeHtml(msg.senderId)}" data-sender-name="${this.escapeHtml(profile.displayName)}" data-text="${this.escapeHtml(msg.text)}" title="Reply" style="background: none; border: none; color: #aaaaaa; cursor: pointer; padding: 3px 6px; display: flex; align-items: center; font-size: 12px;">
+            <div class="message-hover-actions" style="position: absolute; right: 12px; top: -10px; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 2px 4px; display: none; gap: 4px; z-index: 5;">
+              <button type="button" class="btn-copy-msg" data-msg-id="${this.escapeHtml(msg.id)}" data-text="${this.escapeHtml(msg.text)}" title="Copy Text" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 3px 6px; display: flex; align-items: center; font-size: 12px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <button type="button" class="btn-reply-msg" data-msg-id="${this.escapeHtml(msg.id)}" data-sender-id="${this.escapeHtml(msg.senderId)}" data-sender-name="${this.escapeHtml(profile.displayName)}" data-text="${this.escapeHtml(msg.text)}" title="Reply" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 3px 6px; display: flex; align-items: center; font-size: 12px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
                   <polyline points="9 14 4 9 9 4"></polyline>
                   <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
                 </svg>
               </button>
               ${isOwn ? `
-                <button type="button" class="btn-edit-msg" data-msg-id="${this.escapeHtml(msg.id)}" title="Edit Message" style="background: none; border: none; color: #aaaaaa; cursor: pointer; padding: 3px 6px; display: flex; align-items: center; font-size: 12px;">
+                <button type="button" class="btn-edit-msg" data-msg-id="${this.escapeHtml(msg.id)}" title="Edit Message" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 3px 6px; display: flex; align-items: center; font-size: 12px;">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
                     <path d="M12 20h9"></path>
                     <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
@@ -515,7 +521,7 @@ export class MessageList {
                 </button>
               ` : ''}
               ${(isOwn || canManageMessages) ? `
-                <button type="button" class="btn-delete-msg" data-msg-id="${this.escapeHtml(msg.id)}" title="Delete Message" style="background: none; border: none; color: #e57373; cursor: pointer; padding: 3px 6px; display: flex; align-items: center; font-size: 12px;">
+                <button type="button" class="btn-delete-msg" data-msg-id="${this.escapeHtml(msg.id)}" title="Delete Message" style="background: none; border: none; color: #f43f5e; cursor: pointer; padding: 3px 6px; display: flex; align-items: center; font-size: 12px;">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
                     <polyline points="3 6 5 6 21 6"></polyline>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -561,6 +567,18 @@ export class MessageList {
       card.addEventListener('mouseleave', () => {
         const actions = card.querySelector('.message-hover-actions');
         if (actions) actions.style.display = 'none';
+      });
+    });
+
+    this.streamEl.querySelectorAll('.btn-copy-msg').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const text = btn.dataset.text || '';
+        try {
+          await navigator.clipboard.writeText(text);
+          const originalSvg = btn.innerHTML;
+          btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+          setTimeout(() => { btn.innerHTML = originalSvg; }, 1200);
+        } catch {}
       });
     });
 
