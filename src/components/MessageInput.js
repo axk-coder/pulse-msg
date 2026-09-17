@@ -733,7 +733,11 @@ export class MessageInput {
     this.sendBtn.disabled = true;
 
     try {
-      const uploadRes = await playFabService.uploadFile(file);
+      const uploadRes = await playFabService.uploadFile(file, (currentChunk, totalChunks) => {
+        if (this.uploadStatusText) {
+          this.uploadStatusText.textContent = `Uploading ${file.name || 'image.png'}... (${currentChunk}/${totalChunks})`;
+        }
+      });
       if (uploadRes && uploadRes.success && uploadRes.fileId) {
         const fileMsg = `pulse://file/${uploadRes.fileId}?name=${encodeURIComponent(uploadRes.fileName || file.name || 'image.png')}&size=${uploadRes.fileSize || file.size}&type=${encodeURIComponent(uploadRes.fileType || file.type || 'image/png')}`;
         await this.sendDirectMessage(fileMsg);

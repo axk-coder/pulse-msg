@@ -792,7 +792,7 @@ class PlayFabService {
     return this.fileCache.get(String(fileId).trim()) || null;
   }
 
-  async uploadFile(file) {
+  async uploadFile(file, onProgress) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
     if (!file) throw new Error("No file selected");
     if (file.size > 10 * 1024 * 1024) {
@@ -812,6 +812,9 @@ class PlayFabService {
 
     let finalRes = null;
     for (let i = 0; i < totalChunks; i++) {
+      if (typeof onProgress === 'function') {
+        onProgress(i + 1, totalChunks);
+      }
       const chunk = base64Data.slice(i * chunkSize, (i + 1) * chunkSize);
       const payload = {
         uploadId: uploadId,

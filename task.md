@@ -131,3 +131,6 @@
   - Added `Ctrl + K` / `Cmd + K` global hotkey to instantly focus the search bar.
 - [x] **Favicon Asset & Inline SVG Configuration**:
   - Added embedded data URI SVG favicon in `index.html` and static fallback files `public/favicon.svg` and `public/favicon.ico` to eliminate browser 404 resource errors.
+- [x] **File Upload Chunk Timeout Resolution & Live Progress Toast**:
+  - Resolved CloudScript execution timeout on final chunk by buffering chunks in PlayFab UserInternalData and executing exactly 1 GitHub API commit on finalization instead of 28 sequential HTTP calls.
+  - Added real-time chunk progress counter `(chunk/total)` to the file upload status toast in `MessageInput.js`.
