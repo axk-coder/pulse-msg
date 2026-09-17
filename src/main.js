@@ -130,6 +130,12 @@ class PulseApp {
       },
       onProfileUpdated: () => {
         appState.notify('profile');
+      },
+      onOpenLegal: (tab) => {
+        this.legalModal.open(tab);
+      },
+      onOpenCredits: () => {
+        this.creditsModal.open();
       }
     });
 

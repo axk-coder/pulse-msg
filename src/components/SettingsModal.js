@@ -3,9 +3,9 @@ import { appState } from '../services/state.js';
 import { soundSynth } from '../services/soundEffects.js';
 
 export class SettingsModal {
-  constructor(container, { onLogout, onProfileUpdated }) {
+  constructor(container, { onLogout, onProfileUpdated, onOpenLegal, onOpenCredits }) {
     this.container = container;
-    this.callbacks = { onLogout, onProfileUpdated };
+    this.callbacks = { onLogout, onProfileUpdated, onOpenLegal, onOpenCredits };
     this.isOpen = false;
     this.tab = 'profile';
     this.isLoading = false;
@@ -37,7 +37,7 @@ export class SettingsModal {
 
     this.container.innerHTML = `
       <div class="modal-overlay" id="settings-modal-overlay">
-        <div class="modal-card" style="max-width: 460px;">
+        <div class="modal-card" style="max-width: 480px;">
           <div class="modal-header">
             <div class="modal-title-box">
               <h3 class="modal-title">Settings</h3>
@@ -51,9 +51,11 @@ export class SettingsModal {
           </div>
 
           <div class="modal-body">
-            <div class="auth-tabs" style="margin-bottom: 16px;">
-              <button type="button" class="auth-tab ${this.tab === 'profile' ? 'active' : ''}" id="tab-set-profile">Profile</button>
-              <button type="button" class="auth-tab ${this.tab === 'preferences' ? 'active' : ''}" id="tab-set-pref">Preferences</button>
+            <div class="auth-tabs" style="margin-bottom: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+              <button type="button" class="auth-tab ${this.tab === 'profile' ? 'active' : ''}" id="tab-set-profile" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Profile</button>
+              <button type="button" class="auth-tab ${this.tab === 'account' ? 'active' : ''}" id="tab-set-account" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Account</button>
+              <button type="button" class="auth-tab ${this.tab === 'preferences' ? 'active' : ''}" id="tab-set-pref" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Preferences</button>
+              <button type="button" class="auth-tab ${this.tab === 'legal' ? 'active' : ''}" id="tab-set-legal" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Policies</button>
             </div>
 
             ${this.message ? `
@@ -70,13 +72,16 @@ export class SettingsModal {
 
             ${this.tab === 'profile' ? `
               <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-                <div id="settings-avatar-preview" style="width: 56px; height: 56px; border-radius: var(--radius-sm); background: #222222; border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-                  ${user.avatarUrl 
-                    ? `<img src="${this.escapeHtml(user.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
-                    : `<span style="font-size: 22px; font-weight: 700; color: #ffffff;">${user.displayName.charAt(0).toUpperCase()}</span>`
-                  }
+                <div class="avatar-wrapper" id="settings-avatar-preview" style="width: 56px; height: 56px; min-width: 56px; position: relative;">
+                  <div class="avatar" style="width: 100%; height: 100%;">
+                    ${user.avatarUrl 
+                      ? `<img src="${this.escapeHtml(user.avatarUrl)}" class="avatar-img" alt="" />`
+                      : `<span style="font-size: 22px; font-weight: 700; color: #ffffff;">${user.displayName.charAt(0).toUpperCase()}</span>`
+                    }
+                  </div>
+                  <div class="presence-badge-dot dot-${user.presence || 'online'}" style="width: 12px; height: 12px; bottom: 0; right: 0;"></div>
                 </div>
-                <div style="display: flex; flex-direction: column; overflow: hidden;">
+                <div style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span id="settings-name-preview" style="font-size: 16px; font-weight: 700; color: #ffffff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(user.displayName)}</span>
                     ${(user.appRank && !user.appRank.hidden) ? `
@@ -89,6 +94,7 @@ export class SettingsModal {
                     ` : ''}
                   </div>
                   <span style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">@${this.escapeHtml(user.username || user.displayName.toLowerCase().replace(/\s+/g, ''))}</span>
+                  ${user.statusMessage ? `<span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(user.statusMessage)}</span>` : ''}
                 </div>
               </div>
 
@@ -142,38 +148,92 @@ export class SettingsModal {
                   />
                 </div>
 
-                <div class="form-group">
-                  <label class="form-label" for="set-email">Account Email</label>
-                  <input
-                    type="email"
-                    id="set-email"
-                    class="form-input"
-                    value="${this.escapeHtml(user.email || '')}"
-                    placeholder="name@example.com"
-                    maxlength="100"
-                    required
-                    ${this.isLoading ? 'disabled' : ''}
-                  />
-                </div>
-
-                <button type="submit" class="form-btn-submit" id="settings-save-btn" ${this.isLoading ? 'disabled' : ''}>
-                  ${this.isLoading ? 'Saving Changes...' : 'Save Changes'}
+                <button type="submit" class="form-btn-submit" id="settings-save-profile-btn" ${this.isLoading ? 'disabled' : ''}>
+                  ${this.isLoading ? 'Saving Profile...' : 'Save Profile Changes'}
                 </button>
               </form>
+            ` : ''}
 
-              <div style="margin-top: 18px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
-                <button type="button" class="form-btn-submit" id="set-logout-btn" style="background: transparent; border: 1px solid var(--border-medium); color: var(--text-secondary);">
-                  Sign Out
-                </button>
+            ${this.tab === 'account' ? `
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Account Handle</span>
+                    <span style="font-size: 13px; font-weight: 600; color: #ffffff;">@${this.escapeHtml(user.username || user.displayName.toLowerCase().replace(/\s+/g, ''))}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Account Status</span>
+                    <span style="font-size: 12px; font-weight: 700; color: #23a55a; background: rgba(35, 165, 90, 0.12); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(35, 165, 90, 0.3);">Active</span>
+                  </div>
+                </div>
+
+                <form id="settings-account-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px;">
+                  <div class="form-group">
+                    <label class="form-label" for="set-account-email">Account Email</label>
+                    <input
+                      type="email"
+                      id="set-account-email"
+                      class="form-input"
+                      value="${this.escapeHtml(user.email || '')}"
+                      placeholder="name@example.com"
+                      maxlength="100"
+                      required
+                      ${this.isLoading ? 'disabled' : ''}
+                    />
+                  </div>
+
+                  <button type="submit" class="form-btn-submit" id="settings-save-account-btn" ${this.isLoading ? 'disabled' : ''}>
+                    ${this.isLoading ? 'Updating Email...' : 'Update Account Email'}
+                  </button>
+                </form>
+
+                <div style="margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 16px;">
+                  <span style="font-size: 12px; font-weight: 700; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 10px;">Session</span>
+                  <button type="button" class="form-btn-submit" id="set-logout-btn" style="background: transparent; border: 1px solid var(--border-medium); color: var(--text-secondary);">
+                    Sign Out
+                  </button>
+                </div>
               </div>
             ` : ''}
 
             ${this.tab === 'preferences' ? `
               <div style="display: flex; flex-direction: column; gap: 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-                  <span>Audio Effects</span>
-                  <button type="button" class="form-btn-submit" id="set-audio-toggle" style="width: auto; padding: 6px 14px; margin: 0;">
+                  <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 14px; font-weight: 600; color: #ffffff;">Audio Effects</span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Sound synth notifications on messages & alerts</span>
+                  </div>
+                  <button type="button" class="form-btn-submit" id="set-audio-toggle" style="width: auto; padding: 6px 14px; margin: 0; font-size: 12px;">
                     ${soundSynth.enabled ? 'Enabled' : 'Disabled'}
+                  </button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                  <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 14px; font-weight: 600; color: #ffffff;">Color Scheme</span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Strict grayscale neutral dark interface</span>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 700; color: #ffffff; background: #222222; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border-medium);">Grayscale Dark</span>
+                </div>
+              </div>
+            ` : ''}
+
+            ${this.tab === 'legal' ? `
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+                  <h4 style="font-size: 13px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Network & Security Compliance</h4>
+                  <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin: 0;">This application is not designed, built, or intended to bypass any network blocks, organizational restrictions, or firewalls. Standard encrypted HTTPS protocols are utilized for all client data requests.</p>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                  <button type="button" class="form-btn-submit" id="set-open-privacy-btn" style="background: var(--bg-card); border: 1px solid var(--border-medium); color: #ffffff; text-align: left; justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
+                    View Privacy Policy
+                  </button>
+                  <button type="button" class="form-btn-submit" id="set-open-terms-btn" style="background: var(--bg-card); border: 1px solid var(--border-medium); color: #ffffff; text-align: left; justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
+                    View Terms of Service
+                  </button>
+                  <button type="button" class="form-btn-submit" id="set-open-credits-btn" style="background: var(--bg-card); border: 1px solid var(--border-medium); color: #ffffff; text-align: left; justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
+                    View Credits
                   </button>
                 </div>
               </div>
@@ -203,6 +263,14 @@ export class SettingsModal {
       this.render();
     });
 
+    const tabAccount = this.container.querySelector('#tab-set-account');
+    tabAccount?.addEventListener('click', () => {
+      this.tab = 'account';
+      this.error = null;
+      this.message = null;
+      this.render();
+    });
+
     const tabPref = this.container.querySelector('#tab-set-pref');
     tabPref?.addEventListener('click', () => {
       this.tab = 'preferences';
@@ -211,8 +279,16 @@ export class SettingsModal {
       this.render();
     });
 
+    const tabLegal = this.container.querySelector('#tab-set-legal');
+    tabLegal?.addEventListener('click', () => {
+      this.tab = 'legal';
+      this.error = null;
+      this.message = null;
+      this.render();
+    });
+
     const avatarUrlInput = this.container.querySelector('#set-avatar-url');
-    const avatarPreview = this.container.querySelector('#settings-avatar-preview');
+    const avatarPreview = this.container.querySelector('#settings-avatar-preview .avatar');
     const nameInput = this.container.querySelector('#set-display-name');
     const namePreview = this.container.querySelector('#settings-name-preview');
     const presenceSelect = this.container.querySelector('#set-presence');
@@ -223,7 +299,7 @@ export class SettingsModal {
       const user = playFabService.getCurrentUser() || { displayName: "User" };
       if (avatarPreview) {
         if (url) {
-          avatarPreview.innerHTML = `<img src="${this.escapeHtml(url)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" alt="" />`;
+          avatarPreview.innerHTML = `<img src="${this.escapeHtml(url)}" class="avatar-img" onerror="this.style.display='none'" alt="" />`;
         } else {
           avatarPreview.innerHTML = `<span style="font-size: 22px; font-weight: 700; color: #ffffff;">${user.displayName.charAt(0).toUpperCase()}</span>`;
         }
@@ -242,18 +318,11 @@ export class SettingsModal {
       const user = playFabService.getCurrentUser() || {};
       const newAvatarUrl = avatarUrlInput ? avatarUrlInput.value.trim() : '';
       const newName = nameInput ? nameInput.value.trim().slice(0, 32) : '';
-      const emailInput = this.container.querySelector('#set-email');
-      const newEmail = emailInput ? emailInput.value.trim().slice(0, 100) : '';
       const newPresence = presenceSelect ? presenceSelect.value : 'online';
       const newStatusMsg = statusMsgInput ? statusMsgInput.value.trim().slice(0, 128) : '';
 
       if (!newName) {
         this.error = 'Display name cannot be empty';
-        this.render();
-        return;
-      }
-      if (!newEmail || !newEmail.includes('@')) {
-        this.error = 'Valid email is required';
         this.render();
         return;
       }
@@ -270,14 +339,11 @@ export class SettingsModal {
         if (newName !== (user.displayName || '')) {
           await playFabService.updateDisplayName(newName);
         }
-        if (newEmail !== (user.email || '')) {
-          await playFabService.updateEmail(newEmail);
-        }
         if (newPresence !== (user.presence || 'online') || newStatusMsg !== (user.statusMessage || '')) {
           await playFabService.updatePresence(newPresence, newStatusMsg);
         }
 
-        this.message = 'Changes saved successfully';
+        this.message = 'Profile changes saved successfully';
         appState.notify('profileCache');
         if (this.callbacks.onProfileUpdated) {
           this.callbacks.onProfileUpdated();
@@ -290,10 +356,67 @@ export class SettingsModal {
       }
     });
 
+    const accountForm = this.container.querySelector('#settings-account-form');
+    accountForm?.addEventListener('submit', async () => {
+      const user = playFabService.getCurrentUser() || {};
+      const emailInput = this.container.querySelector('#set-account-email');
+      const newEmail = emailInput ? emailInput.value.trim().slice(0, 100) : '';
+
+      if (!newEmail || !newEmail.includes('@')) {
+        this.error = 'Valid email is required';
+        this.render();
+        return;
+      }
+
+      this.isLoading = true;
+      this.error = null;
+      this.message = null;
+      this.render();
+
+      try {
+        if (newEmail !== (user.email || '')) {
+          await playFabService.updateEmail(newEmail);
+        }
+        this.message = 'Account email updated successfully';
+        if (this.callbacks.onProfileUpdated) {
+          this.callbacks.onProfileUpdated();
+        }
+      } catch (e) {
+        this.error = e.message || 'Failed to update email';
+      } finally {
+        this.isLoading = false;
+        this.render();
+      }
+    });
+
     const audioToggle = this.container.querySelector('#set-audio-toggle');
     audioToggle?.addEventListener('click', () => {
       const isEnabled = soundSynth.toggle();
       audioToggle.textContent = isEnabled ? 'Enabled' : 'Disabled';
+    });
+
+    const openPrivacyBtn = this.container.querySelector('#set-open-privacy-btn');
+    openPrivacyBtn?.addEventListener('click', () => {
+      this.close();
+      if (this.callbacks.onOpenLegal) {
+        this.callbacks.onOpenLegal('privacy');
+      }
+    });
+
+    const openTermsBtn = this.container.querySelector('#set-open-terms-btn');
+    openTermsBtn?.addEventListener('click', () => {
+      this.close();
+      if (this.callbacks.onOpenLegal) {
+        this.callbacks.onOpenLegal('terms');
+      }
+    });
+
+    const openCreditsBtn = this.container.querySelector('#set-open-credits-btn');
+    openCreditsBtn?.addEventListener('click', () => {
+      this.close();
+      if (this.callbacks.onOpenCredits) {
+        this.callbacks.onOpenCredits();
+      }
     });
 
     const logoutBtn = this.container.querySelector('#set-logout-btn');

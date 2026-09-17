@@ -105,7 +105,7 @@ class PlayFabService {
     return false;
   }
 
-  async post(endpoint, payload, useAuth = false, hasRetried = false) {
+  async post(endpoint, payload, useAuth = false, attempt = 0) {
     const url = `${PLAYFAB_API_BASE}/${endpoint}`;
     const headers = {
       "Content-Type": "application/json",
@@ -116,23 +116,44 @@ class PlayFabService {
       headers["X-Authentication"] = this.sessionTicket;
     }
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload)
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
+      });
+    } catch (networkErr) {
+      if (attempt < 5) {
+        await new Promise(r => setTimeout(r, Math.min(250 * Math.pow(2, attempt), 2000)));
+        return await this.post(endpoint, payload, useAuth, attempt + 1);
+      }
+      throw networkErr;
+    }
 
     if (!res.ok) {
+      if ((res.status === 429 || res.status === 503 || res.status === 504) && attempt < 5) {
+        await new Promise(r => setTimeout(r, Math.min(250 * Math.pow(2, attempt), 2000)));
+        return await this.post(endpoint, payload, useAuth, attempt + 1);
+      }
       throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
 
     const data = await res.json();
     if (data.code !== 200) {
-      const errMessage = data.errorMessage || data.status || "PlayFab API Error";
-      if (useAuth && !hasRetried && (data.code === 401 || errMessage.toLowerCase().indexOf("ticket") > -1 || errMessage.toLowerCase().indexOf("authenticated") > -1)) {
+      const errMessage = String(data.errorMessage || data.status || "PlayFab API Error");
+      const errLower = errMessage.toLowerCase();
+      const isRateLimit = data.code === 429 || data.code === 1199 || errLower.includes("rate limit") || errLower.includes("over limit") || errLower.includes("too many requests") || errLower.includes("throttle") || errLower.includes("concurrent");
+
+      if (isRateLimit && attempt < 5) {
+        await new Promise(r => setTimeout(r, Math.min(250 * Math.pow(2, attempt), 2000)));
+        return await this.post(endpoint, payload, useAuth, attempt + 1);
+      }
+
+      if (useAuth && attempt === 0 && (data.code === 401 || errLower.includes("ticket") || errLower.includes("authenticated"))) {
         const reauthed = await this.tryAutoLogin();
         if (reauthed) {
-          return await this.post(endpoint, payload, useAuth, true);
+          return await this.post(endpoint, payload, useAuth, attempt + 1);
         }
       }
       const errorObj = new Error(errMessage);
@@ -636,10 +657,10 @@ class PlayFabService {
     return await this.executeScript("leaveServer", { serverId });
   }
 
-  async executeScript(functionName, functionParameter = {}, options = {}) {
+  async executeScript(functionName, functionParameter = {}, options = {}, attempt = 0) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
     const isSilent = Boolean(options && options.silent);
-    if (!isSilent) {
+    if (!isSilent && attempt === 0) {
       this.pendingRequests++;
       appState.setCloudScriptPending(true);
     }
@@ -651,11 +672,24 @@ class PlayFabService {
       };
       const res = await this.post("ExecuteCloudScript", payload, true);
       if (res && res.FunctionResult) {
+        if (res.FunctionResult.rateLimited || (res.FunctionResult.error && String(res.FunctionResult.error).toLowerCase().includes("rate limit"))) {
+          if (attempt < 5) {
+            await new Promise(r => setTimeout(r, Math.min(250 * Math.pow(2, attempt), 2000)));
+            return await this.executeScript(functionName, functionParameter, options, attempt + 1);
+          }
+        }
         return res.FunctionResult;
       }
       return { success: false };
+    } catch (err) {
+      const errLower = String(err.message || "").toLowerCase();
+      if ((errLower.includes("rate limit") || errLower.includes("too many requests") || errLower.includes("429")) && attempt < 5) {
+        await new Promise(r => setTimeout(r, Math.min(250 * Math.pow(2, attempt), 2000)));
+        return await this.executeScript(functionName, functionParameter, options, attempt + 1);
+      }
+      throw err;
     } finally {
-      if (!isSilent) {
+      if (!isSilent && attempt === 0) {
         this.pendingRequests = Math.max(0, this.pendingRequests - 1);
         if (this.pendingRequests === 0) {
           appState.setCloudScriptPending(false);

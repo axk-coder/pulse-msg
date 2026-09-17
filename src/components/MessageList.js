@@ -813,10 +813,10 @@ export class MessageList {
               return `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
                   <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" class="btn-friend-profile" data-friend-id="${this.escapeHtml(fId)}">
-                    <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: #222222; border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                    <div class="member-avatar-box" style="width: 36px; height: 36px; position: relative;">
                       ${profile.avatarUrl 
-                        ? `<img src="${this.escapeHtml(profile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
-                        : `<span style="font-weight: 700; color: #ffffff;">${initial}</span>`
+                        ? `<img src="${this.escapeHtml(profile.avatarUrl)}" class="member-avatar-img" alt="" />`
+                        : `<div class="member-avatar-letter">${initial}</div>`
                       }
                       <div class="presence-badge-dot dot-${profile.presence || 'offline'}"></div>
                     </div>

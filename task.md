@@ -106,9 +106,16 @@
 - [x] **Reduced File Upload Chunk Size**:
   - Adjusted chunk size to 6,000 characters in `src/services/playfab.js` to guarantee payloads stay within PlayFab's 10KB CloudScript function argument limit.
   - Increased CloudScript chunk limit to 2,500 chunks in `backend/cloudscript.js`.
-
-
-
-
-
-
+- [x] **Fix User Server Retrieval & Discovery in CloudScript**:
+  - Fixed `getUserServers` in `backend/cloudscript.js` so it does not permanently return empty lists when `users/<uId>/servers.json` is initialized or cached as `[]`.
+  - Added multi-layer server discovery fallback: if `servers.json` is empty, dynamically checks `users/<uId>/servers/` directory, checks all registered servers in `servers/registry.json` for user membership files and owner records, and synchronizes the found server list back to `users/<uId>/servers.json`.
+  - Updated `deleteServer` and `leaveServer` to automatically clean up `users/<uId>/servers.json` and registry records via `removeServerFromUserList`.
+- [x] **Rate Limit Retry Engine (Max 5 Retries)**:
+  - Frontend (`src/services/playfab.js`): Implemented automated exponential backoff retry loop in `post` and `executeScript` that catches HTTP 429, PlayFab over-limit (code 1199), and rate limit errors, automatically resending the request up to a maximum of 5 times.
+  - Backend (`backend/cloudscript.js`): Added `githubRequest` wrapper for all GitHub database API calls (`getFileFromGitHub`, `listDirFromGitHub`, `saveFileToGitHub`, `deleteFileFromGitHub`) that catches secondary rate limits and rate limit errors and resends up to a maximum of 5 times.
+- [x] **Avatar Status Dot Cutout Mask**:
+  - Implemented Discord-style radial gradient cutout masks (`mask: radial-gradient(...)`) on all avatar circles (`.avatar`, `.member-avatar-img`, `.dm-avatar-mini img`, `.user-profile-avatar-circle`).
+  - The status dot now clips cleanly through the circular avatar border with a transparent gap matching the background.
+- [x] **Settings Modal Multi-Tab Redesign**:
+  - Redesigned `SettingsModal.js` with structured tabs: Profile (Presence, Status message, Profile picture URL, Display name, Live preview), Account (Account overview, Email management, Session sign out), Preferences (Sound & Audio toggle, Grayscale theme status), and Policies.
+  - Updated `LegalModal.js` Privacy Policy and Terms of Service to explicitly state that the application is not made, designed, or intended to bypass network blocks or firewalls.

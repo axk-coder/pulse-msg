@@ -119,13 +119,13 @@ export class UserProfileModal {
 
           <div style="padding: 0 20px 20px; position: relative;">
             <div style="position: relative; width: 64px; height: 64px; margin-top: -32px;">
-              <div style="width: 64px; height: 64px; border-radius: 50%; background: #111111; border: 4px solid #161616; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff;">
+              <div class="user-profile-avatar-circle" style="width: 64px; height: 64px; border-radius: 50%; background: #111111; border: 4px solid #161616; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff;">
                 ${this.profile?.avatarUrl 
                   ? `<img src="${this.escapeHtml(this.profile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
                   : initial
                 }
               </div>
-              <div class="presence-badge-dot dot-${this.profile?.presence || 'offline'}" style="bottom: 2px; right: 2px; width: 14px; height: 14px;"></div>
+              <div class="presence-badge-dot dot-${this.profile?.presence || 'offline'}" style="bottom: 0px; right: 0px; width: 16px; height: 16px;"></div>
             </div>
 
             <div style="margin-top: 12px;">

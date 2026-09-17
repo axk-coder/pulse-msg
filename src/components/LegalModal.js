@@ -59,10 +59,14 @@ export class LegalModal {
               </div>
               <div class="legal-section">
                 <h4 class="legal-title">3. Zero Socket Logging</h4>
-                <p class="legal-text">Pulse does not maintain persistent WebSockets, WebRTC links, or tracking cookies. Inactive sessions automatically suspend polling to minimize network footprint and respect firewall guidelines.</p>
+                <p class="legal-text">Pulse does not maintain persistent WebSockets, WebRTC links, or tracking cookies. Inactive sessions automatically suspend polling to minimize network footprint.</p>
               </div>
               <div class="legal-section">
-                <h4 class="legal-title">4. Data Retention</h4>
+                <h4 class="legal-title">4. Network Policy & Firewall Compliance</h4>
+                <p class="legal-text">This application is not designed, configured, or intended to bypass, circumvent, or evade any network blocks, organizational restrictions, or firewalls. All communications adhere to standard HTTPS web protocols.</p>
+              </div>
+              <div class="legal-section">
+                <h4 class="legal-title">5. Data Retention</h4>
                 <p class="legal-text">Channels retain the most recent 100 messages to balance performance and storage limits. Users can request account removal through PlayFab management.</p>
               </div>
             ` : `
@@ -75,11 +79,15 @@ export class LegalModal {
                 <p class="legal-text">Users may not engage in harassment, unauthorized automated scraping, rate-limit flooding, transmitting malicious payloads, or impersonating other users.</p>
               </div>
               <div class="legal-section">
-                <h4 class="legal-title">3. Service Availability</h4>
+                <h4 class="legal-title">3. No Circumvention</h4>
+                <p class="legal-text">This application is not made or intended to bypass any network blocks, firewalls, content filters, or administrative restrictions. Users are responsible for complying with their local network and institution policies.</p>
+              </div>
+              <div class="legal-section">
+                <h4 class="legal-title">4. Service Availability</h4>
                 <p class="legal-text">Pulse is provided as-is without warranties. Network administrators retain authority over local area network access and firewall rules.</p>
               </div>
               <div class="legal-section">
-                <h4 class="legal-title">4. Termination</h4>
+                <h4 class="legal-title">5. Termination</h4>
                 <p class="legal-text">Accounts violating these policies may be restricted or suspended by the administrator.</p>
               </div>
             `}
