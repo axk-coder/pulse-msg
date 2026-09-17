@@ -31,7 +31,7 @@ export class ShortcutsModal {
                 <line x1="6" y1="16" x2="18" y2="16"></line>
               </svg>
               <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0;">Keyboard Shortcuts</h3>
-              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--bg-card); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-subtle);">5.6</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--bg-card); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-subtle);">5.7</span>
             </div>
             <button type="button" id="shortcuts-close-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; font-size: 16px;">✕</button>
           </div>

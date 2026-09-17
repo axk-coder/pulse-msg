@@ -129,10 +129,8 @@
   - Added 1-click Markdown formatting buttons (`B`, `I`, `<>`, `||`) in `MessageInput.js` that wrap selected text or insert syntax templates.
   - Created `ShortcutsModal.js` with keybindings and markdown reference, opened via `Ctrl + /` or sidebar footer `Keys` link.
   - Added `Ctrl + K` / `Cmd + K` global hotkey to instantly focus the search bar.
-- [x] **Favicon Asset & Inline SVG Configuration**:
-  - Added embedded data URI SVG favicon in `index.html` and static fallback files `public/favicon.svg` and `public/favicon.ico` to eliminate browser 404 resource errors.
-- [x] **Version 5.6 Release & 0.1 Auto-Increment Policy**:
-  - Incremented project release version to `5.6.0` in `package.json`.
-  - Updated all visible version tags to `5.6` across Sidebar footer links, Settings Modal header, Legal Modal header, Credits Modal header, and Shortcuts Modal header.
-  - Enforced version increment of 0.1 for subsequent updates.
+- [x] **Multi-File Batch Upload Support & Version 5.7 Release**:
+  - Added `multiple` attribute on the file upload input in `MessageInput.js` to allow multi-file selection from file picker and multi-file clipboard paste.
+  - Implemented sequential batch file uploading with live progress indicator `Uploading (i/total): filename... (chunk/totalChunks)` in `MessageInput.js`.
+  - Incremented project release version to `5.7.0` in `package.json` and updated version tags across all UI components.
 

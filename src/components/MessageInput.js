@@ -139,7 +139,7 @@ export class MessageInput {
             maxlength="2000"
           ></textarea>
 
-          <input type="file" id="chat-file-input" style="display: none;" />
+          <input type="file" id="chat-file-input" multiple style="display: none;" />
 
           <div class="input-actions">
             <button class="icon-btn" id="format-bold-btn" type="button" title="Bold" style="font-size: 11px; font-weight: 800; padding: 4px 6px;">B</button>
@@ -307,16 +307,17 @@ export class MessageInput {
       const items = e.clipboardData && e.clipboardData.items;
       if (!items) return;
 
+      const pastedFiles = [];
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        if (item.type && item.type.indexOf('image') !== -1) {
+        if (item.kind === 'file') {
           const file = item.getAsFile();
-          if (file) {
-            e.preventDefault();
-            await this.uploadAndSendFile(file);
-            break;
-          }
+          if (file) pastedFiles.push(file);
         }
+      }
+      if (pastedFiles.length > 0) {
+        e.preventDefault();
+        await this.uploadAndSendFiles(pastedFiles);
       }
     });
 
@@ -330,9 +331,9 @@ export class MessageInput {
     });
 
     this.fileInput?.addEventListener('change', async (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      await this.uploadAndSendFile(file);
+      const files = Array.from(e.target.files || []);
+      if (!files || files.length === 0) return;
+      await this.uploadAndSendFiles(files);
     });
 
     this.cancelReplyBtn?.addEventListener('click', () => {
@@ -712,35 +713,51 @@ export class MessageInput {
   }
 
   async uploadAndSendFile(file) {
-    if (!this.canUserSend() || !file) return;
+    return this.uploadAndSendFiles([file]);
+  }
+
+  async uploadAndSendFiles(files) {
+    if (!this.canUserSend() || !files || files.length === 0) return;
 
     if (!playFabService.isAuthenticated()) {
       this.callbacks.onRequireAuth();
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size exceeds 10MB limit.");
-      return;
+    const validFiles = [];
+    for (const f of files) {
+      if (f.size > 10 * 1024 * 1024) {
+        alert(`"${f.name}" exceeds the 10MB limit and was skipped.`);
+      } else {
+        validFiles.push(f);
+      }
     }
+
+    if (validFiles.length === 0) return;
 
     if (this.uploadIndicator) {
       this.uploadIndicator.style.display = 'flex';
-      if (this.uploadStatusText) {
-        this.uploadStatusText.textContent = `Uploading ${file.name || 'image.png'}...`;
-      }
     }
     this.sendBtn.disabled = true;
 
     try {
-      const uploadRes = await playFabService.uploadFile(file, (currentChunk, totalChunks) => {
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        const prefix = validFiles.length > 1 ? `(${i + 1}/${validFiles.length}) ` : '';
         if (this.uploadStatusText) {
-          this.uploadStatusText.textContent = `Uploading ${file.name || 'image.png'}... (${currentChunk}/${totalChunks})`;
+          this.uploadStatusText.textContent = `Uploading ${prefix}${file.name || 'file'}...`;
         }
-      });
-      if (uploadRes && uploadRes.success && uploadRes.fileId) {
-        const fileMsg = `pulse://file/${uploadRes.fileId}?name=${encodeURIComponent(uploadRes.fileName || file.name || 'image.png')}&size=${uploadRes.fileSize || file.size}&type=${encodeURIComponent(uploadRes.fileType || file.type || 'image/png')}`;
-        await this.sendDirectMessage(fileMsg);
+
+        const uploadRes = await playFabService.uploadFile(file, (currentChunk, totalChunks) => {
+          if (this.uploadStatusText) {
+            this.uploadStatusText.textContent = `Uploading ${prefix}${file.name || 'file'}... (${currentChunk}/${totalChunks})`;
+          }
+        });
+
+        if (uploadRes && uploadRes.success && uploadRes.fileId) {
+          const fileMsg = `pulse://file/${uploadRes.fileId}?name=${encodeURIComponent(uploadRes.fileName || file.name || 'file')}&size=${uploadRes.fileSize || file.size}&type=${encodeURIComponent(uploadRes.fileType || file.type || 'application/octet-stream')}`;
+          await this.sendDirectMessage(fileMsg);
+        }
       }
     } catch (err) {
       alert(err?.message || "Failed to upload file");
