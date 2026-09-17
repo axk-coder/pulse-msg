@@ -129,3 +129,5 @@
   - Added 1-click Markdown formatting buttons (`B`, `I`, `<>`, `||`) in `MessageInput.js` that wrap selected text or insert syntax templates.
   - Created `ShortcutsModal.js` with keybindings and markdown reference, opened via `Ctrl + /` or sidebar footer `Keys` link.
   - Added `Ctrl + K` / `Cmd + K` global hotkey to instantly focus the search bar.
+- [x] **Favicon Asset & Inline SVG Configuration**:
+  - Added embedded data URI SVG favicon in `index.html` and static fallback files `public/favicon.svg` and `public/favicon.ico` to eliminate browser 404 resource errors.
