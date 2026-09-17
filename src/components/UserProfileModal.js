@@ -95,8 +95,8 @@ export class UserProfileModal {
     const initial = displayName.charAt(0).toUpperCase();
 
     const targetTopPos = server ? this.getUserTopPosition(server, this.targetUserId) : Infinity;
-    const targetIsOwner = server && this.targetUserId === server.ownerId;
-    const canModifyTarget = canManageRoles && !isSelf && !targetIsOwner && (isOwner || targetTopPos > myTopPos);
+    const targetIsOwner = server && (this.targetUserId === server.ownerId || (!server.ownerId && (server.id === this.targetUserId || server.serverId === this.targetUserId)));
+    const canModifyTarget = isOwner || (canManageRoles && !isSelf && !targetIsOwner && targetTopPos > myTopPos);
 
     const sortedRoles = server && Array.isArray(server.roles) ? server.roles.slice().sort((a, b) => (a.position ?? 999) - (b.position ?? 999)) : [];
 
@@ -182,7 +182,7 @@ export class UserProfileModal {
                   ${assignedRoles.length === 0 && assignableRoles.length === 0 ? '<span style="font-size: 12px; color: var(--text-muted);">No roles</span>' : ''}
                 </div>
 
-                ${(canModifyTarget) ? `
+                ${(canModifyTarget && !isSelf && !targetIsOwner) ? `
                   <div style="margin-top: 16px; display: flex; gap: 8px;">
                     <button type="button" class="form-btn-submit" id="btn-profile-ban" style="flex: 1; padding: 6px 0; font-size: 12px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted);">
                       Ban Member

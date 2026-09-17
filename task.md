@@ -134,3 +134,17 @@
   - Implemented sequential batch file uploading with live progress indicator `Uploading (i/total): filename... (chunk/totalChunks)` in `MessageInput.js`.
   - Incremented project release version to `5.7.0` in `package.json` and updated version tags across all UI components.
 
+- [x] **Fix Server Owner Self-Role Assignment**:
+  - Updated `UserProfileModal.js` to allow server owners (`isOwner`) to assign and toggle roles on their own profile while maintaining hierarchy restrictions on non-owners.
+  - Prevented non-owners from modifying owner or higher-ranked member roles.
+  - Protected against banning self or the server owner.
+- [x] **Dynamic Rich Server Invite Embed Resolution**:
+  - Implemented `resolveServer` with caching in `playfab.js` to fetch real server metadata (name, icon URL, member count).
+  - Updated `MessageList.js` to parse invite links and hash fragments (`#invite=srv_...`), deduplicate link cards, and asynchronously populate real server name, server icon, and member count into invite embed cards.
+  - Updated join button to show "Open Server" if already a member with direct switching, or "Join Server" if not yet joined.
+- [x] **Increment Version to 5.8**:
+  - Updated version string to `5.8.0` in `package.json` and `5.8` across UI modals and sidebar footer.
+  - Updated `map.txt` with architectural changes.
+
+
+

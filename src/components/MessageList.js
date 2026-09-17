@@ -231,33 +231,42 @@ export class MessageList {
       }
     }
 
-    const inviteRegex = /(?:pulse:\/\/invite\/|https?:\/\/[^\s]+\/invite\/|discord\.gg\/|\b)(srv_[0-9]+_[0-9]+)\b/gi;
+    const inviteRegex = /(?:pulse:\/\/invite\/|https?:\/\/[^\s]+(?:[\/#]invite[=\/]|\b)|discord\.gg\/|\b)(srv_[0-9]+_[0-9]+)\b/gi;
     let inviteMatch;
     while ((inviteMatch = inviteRegex.exec(text)) !== null) {
       const srvId = inviteMatch[1];
       if (!handledUrls.has(srvId)) {
         handledUrls.add(srvId);
+        const urlContainingInvite = (text.match(/https?:\/\/[^\s<>"'`]+/gi) || []).find(u => u.includes(srvId));
+        if (urlContainingInvite) {
+          handledUrls.add(urlContainingInvite);
+        }
+        const cachedServer = playFabService.serverCache && playFabService.serverCache.get(srvId);
+        const serverName = cachedServer ? cachedServer.name : "Pulse Server";
+        const serverIcon = cachedServer ? cachedServer.iconUrl : "";
+        const memberCount = cachedServer ? cachedServer.memberCount : 0;
+        const myServers = appState.getState().servers || [];
+        const isAlreadyMember = myServers.some(s => (s.serverId || s.id) === srvId);
+
         embeds.push(`
           <div class="discord-invite-card" data-server-id="${this.escapeHtml(srvId)}">
             <div class="discord-invite-badge">YOU'VE BEEN INVITED TO JOIN A SERVER</div>
             <div class="discord-invite-body">
               <div class="discord-invite-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+                ${serverIcon 
+                  ? `<img src="${this.escapeHtml(serverIcon)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" alt="" />`
+                  : `<div style="width: 100%; height: 100%; border-radius: 8px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: var(--text-primary);">${this.escapeHtml((serverName || 'S').charAt(0).toUpperCase())}</div>`
+                }
               </div>
               <div class="discord-invite-info">
-                <div class="discord-invite-title">Pulse Server</div>
+                <div class="discord-invite-title">${this.escapeHtml(serverName)}</div>
                 <div class="discord-invite-meta">
                   <span class="presence-badge-dot dot-online"></span>
-                  <span>${this.escapeHtml(srvId)}</span>
+                  <span>${memberCount ? `${memberCount} Members • ` : ''}${this.escapeHtml(srvId)}</span>
                 </div>
               </div>
               <button type="button" class="btn-join-embed-server" data-server-id="${this.escapeHtml(srvId)}">
-                Join Server
+                ${isAlreadyMember ? 'Open Server' : 'Join Server'}
               </button>
             </div>
           </div>
@@ -645,6 +654,40 @@ export class MessageList {
 
     this.streamEl.innerHTML = html;
 
+    const inviteCards = this.streamEl.querySelectorAll('.discord-invite-card');
+    const scannedServerIds = new Set();
+    inviteCards.forEach(card => {
+      const sId = card.getAttribute('data-server-id');
+      if (sId && !scannedServerIds.has(sId)) {
+        scannedServerIds.add(sId);
+        playFabService.resolveServer(sId).then(sInfo => {
+          const cards = this.streamEl.querySelectorAll(`.discord-invite-card[data-server-id="${sId}"]`);
+          const myServers = appState.getState().servers || [];
+          const isAlreadyMember = myServers.some(s => (s.serverId || s.id) === sId);
+          cards.forEach(c => {
+            const titleEl = c.querySelector('.discord-invite-title');
+            const iconEl = c.querySelector('.discord-invite-icon');
+            const metaEl = c.querySelector('.discord-invite-meta');
+            const btnEl = c.querySelector('.btn-join-embed-server');
+            if (titleEl) titleEl.textContent = sInfo.name || "Pulse Server";
+            if (iconEl) {
+              if (sInfo.iconUrl) {
+                iconEl.innerHTML = `<img src="${this.escapeHtml(sInfo.iconUrl)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" alt="" />`;
+              } else {
+                iconEl.innerHTML = `<div style="width: 100%; height: 100%; border-radius: 8px; background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: var(--text-primary);">${this.escapeHtml((sInfo.name || 'S').charAt(0).toUpperCase())}</div>`;
+              }
+            }
+            if (metaEl) {
+              metaEl.innerHTML = `<span class="presence-badge-dot dot-online"></span><span>${sInfo.memberCount ? `${sInfo.memberCount} Members • ` : ''}${this.escapeHtml(sId)}</span>`;
+            }
+            if (btnEl && isAlreadyMember) {
+              btnEl.textContent = 'Open Server';
+            }
+          });
+        });
+      }
+    });
+
     this.streamEl.querySelectorAll('.message-card').forEach(card => {
       card.addEventListener('mouseenter', () => {
         const actions = card.querySelector('.message-hover-actions');
@@ -788,6 +831,13 @@ export class MessageList {
         e.stopPropagation();
         const serverId = btn.getAttribute('data-server-id');
         if (!serverId) return;
+
+        const currentServers = appState.getState().servers || [];
+        const existingServer = currentServers.find(s => (s.serverId || s.id) === serverId);
+        if (existingServer) {
+          appState.setActiveServer(existingServer, 'chat');
+          return;
+        }
 
         btn.disabled = true;
         btn.textContent = 'Joining...';

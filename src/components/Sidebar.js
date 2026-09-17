@@ -101,12 +101,14 @@ export class Sidebar {
             </div>
 
             <div class="sidebar-footer-links">
+              <button type="button" class="footer-link-btn" id="footer-shortcuts-btn">Keys</button>
+              <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-privacy-btn">Privacy</button>
               <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-terms-btn">Terms</button>
               <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-credits-btn">Credits</button>
-              <span class="footer-version-tag" style="color: var(--text-muted); font-size: 11px; font-weight: 700; margin-left: auto;">5.7</span>
+              <span class="footer-version-tag" style="color: var(--text-muted); font-size: 11px; font-weight: 700; margin-left: auto;">5.8</span>
             </div>
           </div>
         </div>

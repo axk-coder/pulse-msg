@@ -29,7 +29,7 @@ export class LegalModal {
           <div class="modal-header">
             <div class="modal-title-box" style="display: flex; align-items: center; gap: 8px;">
               <h3 class="modal-title">${this.tab === 'privacy' ? 'Privacy Policy' : 'Terms of Service'}</h3>
-              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--bg-card); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-subtle);">5.7</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--bg-card); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-subtle);">5.8</span>
             </div>
             <button class="modal-close-btn" id="legal-close-btn" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">

@@ -10,6 +10,7 @@ class PlayFabService {
     this.currentUser = null;
     this.lastSendTimestamp = 0;
     this.userCache = new Map();
+    this.serverCache = new Map();
     this.fileCache = new Map();
     this.fileInFlight = new Map();
     this.pendingRequests = 0;
@@ -745,6 +746,42 @@ class PlayFabService {
 
   async getServer(serverId, silent = true) {
     return await this.executeScript("getServer", { serverId }, { silent });
+  }
+
+  async resolveServer(serverId, force = false) {
+    if (!serverId) return { id: "", name: "Pulse Server", iconUrl: "", memberCount: 0 };
+    if (!this.serverCache) this.serverCache = new Map();
+    if (!force && this.serverCache.has(serverId)) {
+      return this.serverCache.get(serverId);
+    }
+    const knownServers = appState.getState().servers || [];
+    const localMatch = knownServers.find(s => (s.serverId || s.id) === serverId);
+    if (localMatch && !force) {
+      const cached = {
+        id: serverId,
+        name: localMatch.name || "Pulse Server",
+        iconUrl: localMatch.iconUrl || "",
+        memberCount: (localMatch.members && typeof localMatch.members === 'object') ? Object.keys(localMatch.members).length : (Array.isArray(localMatch.memberIds) ? localMatch.memberIds.length : 0)
+      };
+      this.serverCache.set(serverId, cached);
+      return cached;
+    }
+
+    const cached = { id: serverId, name: "Pulse Server", iconUrl: "", memberCount: 0 };
+    try {
+      const res = await this.getServer(serverId, true);
+      if (res && res.success && res.server) {
+        const s = res.server;
+        cached.name = s.name || "Pulse Server";
+        cached.iconUrl = s.iconUrl || "";
+        const mCount = (s.members && typeof s.members === 'object') ? Object.keys(s.members).length : (Array.isArray(s.memberIds) ? s.memberIds.length : 0);
+        cached.memberCount = mCount;
+        this.serverCache.set(serverId, cached);
+        return cached;
+      }
+    } catch {}
+    this.serverCache.set(serverId, cached);
+    return cached;
   }
 
   async saveServer(serverId, updateData) {
