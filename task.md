@@ -76,5 +76,13 @@
   - Added automated GitHub Pages deployment workflow `.github/workflows/deploy.yml` on push to `master`.
   - Configured Git credentials via GitHub CLI and pushed latest codebase to private GitHub repository `axk-coder/pulse-msg`.
   - Enabled GitHub Actions Pages builder and verified automated CI/CD deployment succeeded at `https://axk-coder.github.io/pulse-msg/`.
+- [x] **Polished Server Creation & Join System**:
+  - Implemented starter server templates (Custom, Gaming, Study & Work, Friends & Hangout) in `ServerModal.js`.
+  - Added real-time live server badge preview with instant name and icon reflection.
+  - Added built-in grayscale icon preset glyphs (Server, Gamepad, Shield, Compass, Terminal, Crown, Planet) and custom image URL support with fallback.
+  - Added dynamic starter channels customizer with on-the-fly add and remove pill controls.
+  - Added 1-click clipboard paste parsing for invite links/IDs in the Join Server flow.
+  - Fully styled in grayscale palette with fast interaction states in `src/styles/main.css`.
+
 
 
