@@ -421,7 +421,7 @@ class PlayFabService {
 
   async updateAvatarUrl(avatarUrl) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
-    const cleanUrl = String(avatarUrl || "").trim().slice(0, 500);
+    const cleanUrl = String(avatarUrl || "").trim().slice(0, 150000);
 
     if (this.currentUser) {
       this.currentUser.avatarUrl = cleanUrl;
@@ -438,15 +438,63 @@ class PlayFabService {
       }
     }
 
-    try {
-      await this.post("UpdateAvatarUrl", { ImageUrl: cleanUrl }, true);
-    } catch {}
+    if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
+      try {
+        await this.post("UpdateAvatarUrl", { ImageUrl: cleanUrl.slice(0, 500) }, true);
+      } catch {}
+    }
 
     try {
       await this.executeScript("updateUserProfile", { avatarUrl: cleanUrl });
     } catch {}
 
     return cleanUrl;
+  }
+
+  async uploadAvatar(file) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    if (!file) throw new Error("No image file provided");
+    if (!file.type.startsWith("image/")) {
+      throw new Error("File must be an image");
+    }
+
+    const rawDataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const compressedDataUrl = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = Math.min(img.width, img.height);
+        const sx = (img.width - size) / 2;
+        const sy = (img.height - size) / 2;
+        const targetSize = Math.min(256, size);
+        const canvas = document.createElement('canvas');
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, targetSize, targetSize);
+        let outUrl = '';
+        try {
+          outUrl = canvas.toDataURL('image/webp', 0.85);
+        } catch {}
+        if (!outUrl || !outUrl.startsWith('data:image/webp')) {
+          try {
+            outUrl = canvas.toDataURL('image/jpeg', 0.85);
+          } catch {
+            outUrl = rawDataUrl;
+          }
+        }
+        resolve(outUrl);
+      };
+      img.onerror = () => resolve(rawDataUrl);
+      img.src = rawDataUrl;
+    });
+
+    return await this.updateAvatarUrl(compressedDataUrl);
   }
 
   async resolveUser(playFabId, force = false) {

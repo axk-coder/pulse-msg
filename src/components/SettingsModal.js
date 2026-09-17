@@ -44,7 +44,7 @@ export class SettingsModal {
           <div class="modal-header">
             <div class="modal-title-box" style="display: flex; align-items: center; gap: 8px;">
               <h3 class="modal-title">Settings</h3>
-              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--bg-card); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-subtle);">5.8</span>
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--bg-card); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-subtle);">5.9</span>
             </div>
             <button class="modal-close-btn" id="settings-close-btn" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
@@ -76,7 +76,7 @@ export class SettingsModal {
 
             ${this.tab === 'profile' ? `
               <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
-                <div class="avatar-wrapper" id="settings-avatar-preview" style="width: 56px; height: 56px; min-width: 56px; position: relative;">
+                <div class="avatar-wrapper" id="settings-avatar-preview" style="width: 56px; height: 56px; min-width: 56px; position: relative; cursor: pointer;" title="Click to upload new avatar">
                   <div class="avatar" style="width: 100%; height: 100%;">
                     ${user.avatarUrl 
                       ? `<img src="${this.escapeHtml(user.avatarUrl)}" class="avatar-img" alt="" />`
@@ -98,9 +98,13 @@ export class SettingsModal {
                     ` : ''}
                   </div>
                   <span style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">@${this.escapeHtml(user.username || user.displayName.toLowerCase().replace(/\s+/g, ''))}</span>
-                  ${user.statusMessage ? `<span style="font-size: 11px; color: var(--text-muted); margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(user.statusMessage)}</span>` : ''}
+                  <div style="display: flex; gap: 6px; margin-top: 8px;">
+                    <button type="button" class="form-btn-submit" id="btn-upload-pfp" style="padding: 4px 10px; font-size: 11px; width: auto;">Upload PFP</button>
+                    ${user.avatarUrl ? '<button type="button" id="btn-remove-pfp" style="padding: 4px 8px; font-size: 11px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted); border-radius: var(--radius-sm); cursor: pointer;">Remove</button>' : ''}
+                  </div>
                 </div>
               </div>
+              <input type="file" id="settings-pfp-input" accept="image/*" style="display: none;" />
 
               <form id="settings-profile-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px;">
                 <div class="form-group">
@@ -134,7 +138,7 @@ export class SettingsModal {
                     class="form-input"
                     placeholder="https://example.com/avatar.png"
                     value="${this.escapeHtml(user.avatarUrl || '')}"
-                    maxlength="500"
+                    maxlength="150000"
                     ${this.isLoading ? 'disabled' : ''}
                   />
                 </div>
@@ -353,6 +357,59 @@ export class SettingsModal {
     const namePreview = this.container.querySelector('#settings-name-preview');
     const presenceSelect = this.container.querySelector('#set-presence');
     const statusMsgInput = this.container.querySelector('#set-status-msg');
+    const pfpInput = this.container.querySelector('#settings-pfp-input');
+    const uploadPfpBtn = this.container.querySelector('#btn-upload-pfp');
+    const removePfpBtn = this.container.querySelector('#btn-remove-pfp');
+    const avatarPreviewWrapper = this.container.querySelector('#settings-avatar-preview');
+
+    uploadPfpBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      pfpInput?.click();
+    });
+
+    avatarPreviewWrapper?.addEventListener('click', () => {
+      pfpInput?.click();
+    });
+
+    removePfpBtn?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (avatarUrlInput) avatarUrlInput.value = '';
+      if (avatarPreview) {
+        const u = playFabService.getCurrentUser() || { displayName: "User" };
+        avatarPreview.innerHTML = `<span style="font-size: 22px; font-weight: 700; color: #ffffff;">${u.displayName.charAt(0).toUpperCase()}</span>`;
+      }
+      try {
+        await playFabService.updateAvatarUrl('');
+        this.message = 'Avatar removed';
+        appState.notify('profileCache');
+        if (this.callbacks.onProfileUpdated) this.callbacks.onProfileUpdated();
+        this.render();
+      } catch (err) {
+        this.error = err.message || 'Failed to remove avatar';
+        this.render();
+      }
+    });
+
+    pfpInput?.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      this.isLoading = true;
+      this.error = null;
+      this.message = null;
+      this.render();
+      try {
+        const dataUrl = await playFabService.uploadAvatar(file);
+        if (avatarUrlInput) avatarUrlInput.value = dataUrl;
+        this.message = 'Avatar uploaded successfully!';
+        appState.notify('profileCache');
+        if (this.callbacks.onProfileUpdated) this.callbacks.onProfileUpdated();
+      } catch (err) {
+        this.error = err.message || 'Failed to upload avatar';
+      } finally {
+        this.isLoading = false;
+        this.render();
+      }
+    });
 
     avatarUrlInput?.addEventListener('input', (e) => {
       const url = e.target.value.trim();

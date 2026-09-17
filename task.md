@@ -133,7 +133,6 @@
   - Added `multiple` attribute on the file upload input in `MessageInput.js` to allow multi-file selection from file picker and multi-file clipboard paste.
   - Implemented sequential batch file uploading with live progress indicator `Uploading (i/total): filename... (chunk/totalChunks)` in `MessageInput.js`.
   - Incremented project release version to `5.7.0` in `package.json` and updated version tags across all UI components.
-
 - [x] **Fix Server Owner Self-Role Assignment**:
   - Updated `UserProfileModal.js` to allow server owners (`isOwner`) to assign and toggle roles on their own profile while maintaining hierarchy restrictions on non-owners.
   - Prevented non-owners from modifying owner or higher-ranked member roles.
@@ -142,9 +141,16 @@
   - Implemented `resolveServer` with caching in `playfab.js` to fetch real server metadata (name, icon URL, member count).
   - Updated `MessageList.js` to parse invite links and hash fragments (`#invite=srv_...`), deduplicate link cards, and asynchronously populate real server name, server icon, and member count into invite embed cards.
   - Updated join button to show "Open Server" if already a member with direct switching, or "Join Server" if not yet joined.
-- [x] **Increment Version to 5.8**:
-  - Updated version string to `5.8.0` in `package.json` and `5.8` across UI modals and sidebar footer.
+- [x] **PFP Image Uploading & Processing Engine**:
+  - Implemented client-side avatar image compressor/resizer (`uploadAvatar`) in `playfab.js` using HTML5 Canvas (max 256x256, center cropped, optimized WebP/JPEG encoding) to ensure instant profile loading.
+  - Updated `updateAvatarUrl` in `playfab.js` and `updateUserProfile` in `backend/cloudscript.js` to store full data URLs up to 150,000 characters without truncation.
+  - Added PFP upload trigger button, hidden file input, instant upload handler, and "Remove" avatar button in both `SettingsModal.js` and `ProfileModal.js`.
+- [x] **Verified Tenor GIF Library & Favorite GIFs System**:
+  - Replaced GIF catalog in `MessageInput.js` with 26 verified active Tenor media URLs across Gaming, Anime, Cats, Dogs, Memes, Party, and Reactions.
+  - Added Favorite GIFs system (`pulse_fav_gifs` localStorage) with dedicated `★ Favs` category tab.
+  - Added star (★) toggles on all GIF cards to save and remove favorites.
+  - Added `+ Fav URL` button in GIF popover header to add custom GIF links to favorites with label support.
+- [x] **Version 5.9 Release**:
+  - Incremented version to `5.9.0` in `package.json`.
+  - Updated version badges to `5.9` across `Sidebar.js`, `SettingsModal.js`, `LegalModal.js`, `CreditsModal.js`, and `ShortcutsModal.js`.
   - Updated `map.txt` with architectural changes.
-
-
-

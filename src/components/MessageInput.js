@@ -70,24 +70,32 @@ const EMOJI_CATEGORIES = [
 ];
 
 const CURATED_GIFS = [
-  { id: "g1", title: "GG / Gaming", tags: ["gaming", "gg", "win", "play"], url: "https://media.tenor.com/26Xm-gM6fWAAAAAM/cat-gaming.gif" },
-  { id: "g2", title: "Victory Dance", tags: ["dance", "hype", "happy", "party"], url: "https://media.tenor.com/kS9l57XG01EAAAAM/pepe-dance.gif" },
-  { id: "g3", title: "Anime Wave", tags: ["anime", "wave", "hello", "hi"], url: "https://media.tenor.com/4qJ5pG7e2ZAAAAAM/anime-wave.gif" },
-  { id: "g4", title: "Typing Fast", tags: ["code", "typing", "fast", "hacker", "work"], url: "https://media.tenor.com/E8f8A_B25fMAAAAM/cat-typing.gif" },
-  { id: "g5", title: "Thinking", tags: ["think", "hmm", "question", "smart"], url: "https://media.tenor.com/B94XmCqP-4EAAAAM/pepe-thinking.gif" },
-  { id: "g6", title: "Cheers / Party", tags: ["cheers", "celebrate", "toast", "congrats"], url: "https://media.tenor.com/9499i85K_78AAAAM/leonardo-dicaprio-cheers.gif" },
-  { id: "g7", title: "Mind Blown", tags: ["mind blown", "shocked", "wow", "omg"], url: "https://media.tenor.com/GfUXS21u04sAAAAM/mind-blown-explosion.gif" },
-  { id: "g8", title: "Cat Vibing", tags: ["vibe", "music", "cat", "chill"], url: "https://media.tenor.com/gK9p95T8uC8AAAAM/cat-vibe.gif" },
-  { id: "g9", title: "Thumbs Up", tags: ["thumbs up", "ok", "yes", "nice", "good"], url: "https://media.tenor.com/X4_0p5c0Q-MAAAAM/thumbs-up-computer.gif" },
-  { id: "g10", title: "Popcorn Watching", tags: ["popcorn", "drama", "watch", "meme"], url: "https://media.tenor.com/f_wWc3J8F7sAAAAM/popcorn-eating.gif" },
-  { id: "g11", title: "Anime Wow", tags: ["anime", "wow", "eyes", "sparkle"], url: "https://media.tenor.com/uR6eP4z-f_cAAAAM/anime-sparkle.gif" },
-  { id: "g12", title: "Skeleton Dance", tags: ["skeleton", "meme", "funny", "spooky"], url: "https://media.tenor.com/7b58w_B9CNEAAAAM/spooky-skeleton.gif" },
-  { id: "g13", title: "Facepalm", tags: ["facepalm", "meme", "fail", "no"], url: "https://media.tenor.com/1Gv_wSjR6F4AAAAM/picard-facepalm.gif" },
-  { id: "g14", title: "Hype Dog", tags: ["dog", "hype", "happy", "cute"], url: "https://media.tenor.com/0iH191uL2YcAAAAM/dog-excited.gif" },
-  { id: "g15", title: "Shocked Pikachu", tags: ["anime", "meme", "shocked", "pokemon"], url: "https://media.tenor.com/bC_f8a0-2fUAAAAM/pikachu-shocked.gif" },
-  { id: "g16", title: "Rage / Anger", tags: ["rage", "angry", "gaming", "mad"], url: "https://media.tenor.com/Y36Wd-5657wAAAAM/keyboard-smash-rage.gif" },
-  { id: "g17", title: "Laughing Hard", tags: ["laugh", "funny", "meme", "lol"], url: "https://media.tenor.com/uPvd-6i79EAAAAAM/laughing-hard.gif" },
-  { id: "g18", title: "Salute / Respect", tags: ["salute", "respect", "gg", "honor"], url: "https://media.tenor.com/39J-L9C92eAAAAAM/crying-salute.gif" }
+  { id: "g1", title: "Gaming Cat", tags: ["gaming", "game", "cat"], url: "https://media.tenor.com/ofQTcck4q7AAAAAM/cat-glasses.gif" },
+  { id: "g2", title: "Gaming Rig", tags: ["gaming", "game", "pc", "computer"], url: "https://media.tenor.com/1Op1SlDy7hUAAAAM/computer-games.gif" },
+  { id: "g3", title: "Gaming Streamer", tags: ["gaming", "game", "hype"], url: "https://media.tenor.com/6afWhPVV8uAAAAAM/gaming-ishotz.gif" },
+  { id: "g4", title: "Anime Dance", tags: ["anime", "dance", "happy"], url: "https://media.tenor.com/TxflfpxQNgcAAAAM/happy-dance.gif" },
+  { id: "g5", title: "Anime Goku", tags: ["anime", "fight", "goku"], url: "https://media.tenor.com/INKyrUrQW3AAAAAM/anime-goku.gif" },
+  { id: "g6", title: "Bocchi Anime", tags: ["anime", "cute", "bocchi"], url: "https://media.tenor.com/d-lz7Nu6X2oAAAAM/bocchi-the-rock-bocchi.gif" },
+  { id: "g7", title: "Anime Eva Dance", tags: ["anime", "dance", "vibe"], url: "https://media.tenor.com/YwP5km8TjY8AAAAM/anime-dance-neon-genesis-evangelion.gif" },
+  { id: "g8", title: "Cat Dance", tags: ["cats", "cat", "dance", "cute"], url: "https://media.tenor.com/aGj-frNYMFEAAAAM/cat-cat-dance.gif" },
+  { id: "g9", title: "Swag Cat", tags: ["cats", "cat", "swag", "cool"], url: "https://media.tenor.com/cRTQk6N_FxMAAAAM/swag-cat-swagbilli-cutecat-cats-cat-swag-ok-yooo-yo.gif" },
+  { id: "g10", title: "Water Cat", tags: ["cats", "cat", "cute"], url: "https://media.tenor.com/OPG42VTMUrYAAAAM/water-cat.gif" },
+  { id: "g11", title: "Cat Pringle", tags: ["cats", "cat", "funny"], url: "https://media.tenor.com/2S4TvwVcj9AAAAAM/cat-pringle-cat.gif" },
+  { id: "g12", title: "Side Eye Dog", tags: ["dogs", "dog", "meme", "suspicious"], url: "https://media.tenor.com/OEvKhm_qIQ0AAAAM/side-eye-dog-suspicious.gif" },
+  { id: "g13", title: "Angry Dog", tags: ["dogs", "dog", "mad"], url: "https://media.tenor.com/O64aKH8IkAkAAAAM/angry-chihuahua-chi.gif" },
+  { id: "g14", title: "Happy Dog", tags: ["dogs", "dog", "smile"], url: "https://media.tenor.com/mAfUU70X_1UAAAAM/dog-smirk-dog-happy.gif" },
+  { id: "g15", title: "IShowSpeed Dance", tags: ["memes", "meme", "dance", "speed"], url: "https://media.tenor.com/kLfwF7LJ5-wAAAAM/ishowspeed-dance.gif" },
+  { id: "g16", title: "Stare Meme", tags: ["memes", "meme", "stare"], url: "https://media.tenor.com/27UExmylb3sAAAAM/stare-meme-meme.gif" },
+  { id: "g17", title: "Plankton Meme", tags: ["memes", "meme", "funny"], url: "https://media.tenor.com/28ZaziH4y1kAAAAM/ugly-plankton-meme-ugly-plankton.gif" },
+  { id: "g18", title: "Office Party", tags: ["party", "dance", "office", "celebrate"], url: "https://media.tenor.com/vBicH3Lgb5MAAAAM/the-office-party.gif" },
+  { id: "g19", title: "Birthday Party", tags: ["party", "happy", "celebrate"], url: "https://media.tenor.com/lgYzuW5fBvAAAAAM/happy-birthday-bon-anniversaire.gif" },
+  { id: "g20", title: "Goodfellas Laugh", tags: ["reactions", "laugh", "funny"], url: "https://media.tenor.com/wE0jylD_O4gAAAAM/goodfellas-laugh-liotta.gif" },
+  { id: "g21", title: "Spit Laugh", tags: ["reactions", "laugh", "spit"], url: "https://media.tenor.com/3YX1vx3m6OwAAAAM/laugh-spit.gif" },
+  { id: "g22", title: "Popcorn Eating", tags: ["reactions", "popcorn", "drama"], url: "https://media.tenor.com/D9qDYwwlJC0AAAAM/pop-corn.gif" },
+  { id: "g23", title: "Popcorn Guy", tags: ["reactions", "popcorn", "chill"], url: "https://media.tenor.com/T7oGpFmn3_YAAAAM/popcorn-guy-relaxing.gif" },
+  { id: "g24", title: "Mr Bean Thumbs Up", tags: ["reactions", "thumbs up", "ok", "nice"], url: "https://media.tenor.com/tVy1iyr9AMQAAAAM/mr-bean-thumbs-up.gif" },
+  { id: "g25", title: "Cat Thumbs Up", tags: ["reactions", "thumbs up", "cat", "good"], url: "https://media.tenor.com/TsVXIAMBZXoAAAAM/cat-thumbs-up-thumbs-up.gif" },
+  { id: "g26", title: "Rickroll", tags: ["memes", "meme", "dance", "rickroll"], url: "https://c.tenor.com/yheo1GGu3FwAAAAC/rick-roll-rick-ashley.gif" }
 ];
 
 export class MessageInput {
@@ -203,16 +211,20 @@ export class MessageInput {
         </div>
 
         <div class="gif-popover" id="gif-popover" style="display: none;">
-          <div class="gif-popover-header">
-            <input type="text" id="gif-search-input" class="gif-search-input" placeholder="Search GIFs..." autocomplete="off" />
+          <div class="gif-popover-header" style="display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid #282828;">
+            <input type="text" id="gif-search-input" class="gif-search-input" placeholder="Search GIFs..." autocomplete="off" style="flex: 1;" />
+            <button type="button" id="btn-add-custom-gif" class="btn-secondary" style="padding: 6px 10px; font-size: 11px; white-space: nowrap; height: 32px; font-weight: 600; cursor: pointer;" title="Add Custom GIF URL">+ Fav URL</button>
           </div>
           <div class="gif-category-bar">
             <button type="button" class="gif-tag-btn active" data-gif-tag="all">All</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="favs">★ Favs</button>
             <button type="button" class="gif-tag-btn" data-gif-tag="gaming">Gaming</button>
             <button type="button" class="gif-tag-btn" data-gif-tag="anime">Anime</button>
-            <button type="button" class="gif-tag-btn" data-gif-tag="meme">Memes</button>
-            <button type="button" class="gif-tag-btn" data-gif-tag="dance">Dance</button>
-            <button type="button" class="gif-tag-btn" data-gif-tag="happy">Happy</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="cats">Cats</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="dogs">Dogs</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="memes">Memes</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="party">Party</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="reactions">Reactions</button>
           </div>
           <div class="gif-results-grid" id="gif-results-grid"></div>
         </div>
@@ -237,6 +249,7 @@ export class MessageInput {
     this.gifPopover = this.container.querySelector('#gif-popover');
     this.gifGrid = this.container.querySelector('#gif-results-grid');
     this.gifSearchInput = this.container.querySelector('#gif-search-input');
+    this.addCustomGifBtn = this.container.querySelector('#btn-add-custom-gif');
     this.charCounter = this.container.querySelector('#char-counter');
     this.replyBar = this.container.querySelector('#reply-preview-bar');
     this.replyText = this.container.querySelector('#reply-preview-text');
@@ -251,6 +264,45 @@ export class MessageInput {
     this.renderGifGrid();
     this.updatePlaceholder();
     this.updateReplyBar();
+  }
+
+  getFavoriteGifs() {
+    try {
+      const stored = localStorage.getItem('pulse_fav_gifs');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  }
+
+  saveFavoriteGifs(favs) {
+    try {
+      localStorage.setItem('pulse_fav_gifs', JSON.stringify(favs));
+    } catch {}
+  }
+
+  isGifFavorite(url) {
+    const favs = this.getFavoriteGifs();
+    return favs.some(f => f.url === url);
+  }
+
+  toggleFavoriteGif(gif) {
+    let favs = this.getFavoriteGifs();
+    const existsIndex = favs.findIndex(f => f.url === gif.url);
+    if (existsIndex >= 0) {
+      favs.splice(existsIndex, 1);
+    } else {
+      favs.unshift({
+        id: gif.id || ('fav_' + Date.now()),
+        title: gif.title || 'Favorite GIF',
+        tags: gif.tags || ['favs'],
+        url: gif.url
+      });
+    }
+    this.saveFavoriteGifs(favs);
+    this.renderGifGrid();
   }
 
   attachEvents() {
@@ -376,6 +428,31 @@ export class MessageInput {
       this.renderGifGrid();
     });
 
+    this.addCustomGifBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const customUrl = prompt('Enter GIF image URL (https://...):');
+      if (!customUrl) return;
+      const trimmed = customUrl.trim();
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        alert('Please enter a valid HTTP or HTTPS GIF URL.');
+        return;
+      }
+      const title = prompt('Enter a label for this GIF (optional):', 'Custom GIF') || 'Custom GIF';
+      this.toggleFavoriteGif({
+        id: 'custom_' + Date.now(),
+        title: title.trim(),
+        tags: ['favs', 'custom'],
+        url: trimmed
+      });
+      const favTabBtn = this.container.querySelector('.gif-tag-btn[data-gif-tag="favs"]');
+      if (favTabBtn) {
+        this.container.querySelectorAll('.gif-tag-btn').forEach(b => b.classList.remove('active'));
+        favTabBtn.classList.add('active');
+        this.activeGifCategory = 'favs';
+        this.renderGifGrid();
+      }
+    });
+
     const gifTagBtns = this.container.querySelectorAll('.gif-tag-btn');
     gifTagBtns.forEach((btn) => {
       btn.addEventListener('click', (e) => {
@@ -414,30 +491,56 @@ export class MessageInput {
     if (!this.gifGrid) return;
     const q = this.gifSearchQuery;
     const cat = this.activeGifCategory;
+    const favGifs = this.getFavoriteGifs();
 
-    let filtered = CURATED_GIFS;
-    if (cat && cat !== 'all') {
-      filtered = filtered.filter(g => g.tags.includes(cat) || g.title.toLowerCase().includes(cat));
+    let list = [];
+    if (cat === 'favs') {
+      list = [...favGifs];
+    } else {
+      list = [...CURATED_GIFS];
+    }
+
+    if (cat && cat !== 'all' && cat !== 'favs') {
+      list = list.filter(g => (Array.isArray(g.tags) && g.tags.includes(cat)) || (g.title && g.title.toLowerCase().includes(cat)));
     }
     if (q) {
-      filtered = filtered.filter(g => g.title.toLowerCase().includes(q) || g.tags.some(t => t.includes(q)) || g.url.toLowerCase().includes(q));
+      list = list.filter(g => (g.title && g.title.toLowerCase().includes(q)) || (Array.isArray(g.tags) && g.tags.some(t => t.includes(q))) || (g.url && g.url.toLowerCase().includes(q)));
     }
 
-    if (filtered.length === 0) {
+    if (list.length === 0) {
       this.gifGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">
-          No matching GIFs found.
+        <div style="grid-column: 1 / -1; padding: 24px 12px; text-align: center; color: var(--text-muted); font-size: 12px; line-height: 1.5;">
+          ${cat === 'favs' ? 'No favorite GIFs saved yet.<br>Click the star (★) on any GIF or use "+ Fav URL" to add your favorites.' : 'No matching GIFs found.'}
         </div>
       `;
       return;
     }
 
-    this.gifGrid.innerHTML = filtered.map(g => `
-      <div class="gif-item-card" data-gif-url="${g.url}" title="${g.title}">
-        <img src="${g.url}" alt="${g.title}" loading="lazy" />
-        <span class="gif-item-label">${g.title}</span>
-      </div>
-    `).join('');
+    const escapeStr = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
+    this.gifGrid.innerHTML = list.map(g => {
+      const isFav = this.isGifFavorite(g.url);
+      const safeUrl = escapeStr(g.url);
+      const safeTitle = escapeStr(g.title);
+      return `
+        <div class="gif-item-card" data-gif-url="${safeUrl}" title="${safeTitle}" style="position: relative;">
+          <button type="button" class="gif-fav-star-btn ${isFav ? 'active' : ''}" data-fav-url="${safeUrl}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" style="position: absolute; top: 4px; right: 4px; z-index: 5; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; color: ${isFav ? '#ffffff' : '#888888'}; padding: 2px 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            ★
+          </button>
+          <img src="${safeUrl}" alt="${safeTitle}" loading="lazy" />
+          <span class="gif-item-label">${safeTitle}</span>
+        </div>
+      `;
+    }).join('');
+
+    this.gifGrid.querySelectorAll('.gif-fav-star-btn').forEach(starBtn => {
+      starBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const url = starBtn.getAttribute('data-fav-url');
+        const matched = list.find(g => g.url === url) || { url, title: 'Custom GIF', tags: ['favs'] };
+        this.toggleFavoriteGif(matched);
+      });
+    });
 
     this.gifGrid.querySelectorAll('.gif-item-card').forEach(card => {
       card.addEventListener('click', (e) => {

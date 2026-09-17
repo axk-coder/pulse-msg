@@ -48,11 +48,14 @@ export class ProfileModal {
           </div>
 
           <div class="modal-body">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
-              <div style="width: 44px; height: 44px; border-radius: var(--radius-sm); background: #222222; border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #ffffff;">
-                ${user.displayName.charAt(0).toUpperCase()}
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div class="avatar-wrapper" id="profile-avatar-preview" style="width: 48px; height: 48px; min-width: 48px; border-radius: var(--radius-sm); background: #222222; border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #ffffff; overflow: hidden; cursor: pointer;" title="Click to change avatar">
+                ${user.avatarUrl 
+                  ? `<img src="${this.escapeHtml(user.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
+                  : user.displayName.charAt(0).toUpperCase()
+                }
               </div>
-              <div style="display: flex; flex-direction: column;">
+              <div style="display: flex; flex-direction: column; flex: 1;">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 15px; font-weight: 700;">${this.escapeHtml(user.displayName)}</span>
                   ${(user.appRank && !user.appRank.hidden) ? `
@@ -65,8 +68,13 @@ export class ProfileModal {
                   ` : ''}
                 </div>
                 <span style="font-size: 12px; color: var(--text-secondary); margin-top: 1px;">@${this.escapeHtml(user.username || user.displayName.toLowerCase().replace(/\s+/g, ''))}</span>
+                <div style="display: flex; gap: 6px; margin-top: 6px;">
+                  <button type="button" class="form-btn-submit" id="btn-profile-upload-pfp" style="padding: 3px 8px; font-size: 11px; width: auto;">Change PFP</button>
+                  ${user.avatarUrl ? '<button type="button" id="btn-profile-remove-pfp" style="padding: 3px 6px; font-size: 11px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted); border-radius: var(--radius-sm); cursor: pointer;">Remove</button>' : ''}
+                </div>
               </div>
             </div>
+            <input type="file" id="profile-pfp-input" accept="image/*" style="display: none;" />
 
             ${this.message ? `
               <div style="padding: 8px 10px; border-radius: var(--radius-sm); font-size: 12px; background: #181818; border: 1px solid var(--border-medium); color: #ffffff;">
@@ -138,6 +146,61 @@ export class ProfileModal {
 
     const closeBtn = this.container.querySelector('#profile-close-btn');
     closeBtn?.addEventListener('click', () => this.close());
+
+    const pfpInput = this.container.querySelector('#profile-pfp-input');
+    const uploadPfpBtn = this.container.querySelector('#btn-profile-upload-pfp');
+    const removePfpBtn = this.container.querySelector('#btn-profile-remove-pfp');
+    const avatarPreviewWrapper = this.container.querySelector('#profile-avatar-preview');
+
+    uploadPfpBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      pfpInput?.click();
+    });
+
+    avatarPreviewWrapper?.addEventListener('click', () => {
+      pfpInput?.click();
+    });
+
+    removePfpBtn?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      this.isLoading = true;
+      this.error = null;
+      this.message = null;
+      this.render();
+      try {
+        await playFabService.updateAvatarUrl('');
+        this.message = 'Avatar removed';
+        appState.notify('profile');
+        appState.notify('profileCache');
+        if (this.callbacks.onProfileUpdated) this.callbacks.onProfileUpdated();
+      } catch (err) {
+        this.error = err.message || 'Failed to remove avatar';
+      } finally {
+        this.isLoading = false;
+        this.render();
+      }
+    });
+
+    pfpInput?.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      this.isLoading = true;
+      this.error = null;
+      this.message = null;
+      this.render();
+      try {
+        await playFabService.uploadAvatar(file);
+        this.message = 'Avatar updated successfully!';
+        appState.notify('profile');
+        appState.notify('profileCache');
+        if (this.callbacks.onProfileUpdated) this.callbacks.onProfileUpdated();
+      } catch (err) {
+        this.error = err.message || 'Failed to upload avatar';
+      } finally {
+        this.isLoading = false;
+        this.render();
+      }
+    });
 
     const nameForm = this.container.querySelector('#profile-name-form');
     nameForm?.addEventListener('submit', async () => {
