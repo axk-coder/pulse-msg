@@ -441,7 +441,8 @@ export class MessageInput {
 
   updatePlaceholder() {
     const state = appState.getState();
-    const isChatOpen = (state.activeContext === 'global') || (state.activeContext === 'server' && !!state.activeServerId && !!state.activeChannelId) || (state.activeContext === 'dm' && !!state.activeDM);
+    const isFriendsHub = (state.activeContext === 'dm' && !state.activeDM);
+    const isChatOpen = !isFriendsHub;
     this.container.style.display = isChatOpen ? 'block' : 'none';
 
     const canSend = this.canUserSend();

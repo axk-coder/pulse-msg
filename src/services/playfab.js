@@ -516,19 +516,6 @@ class PlayFabService {
   async getFriendsList() {
     if (!this.sessionTicket) return [];
     try {
-      const cloudRes = await this.executeScript("getFriends", {}, { silent: true });
-      if (cloudRes && cloudRes.success && Array.isArray(cloudRes.friends)) {
-        cloudRes.friends.forEach(f => {
-          this.userCache.set(f.playFabId, {
-            displayName: f.displayName,
-            avatarUrl: f.avatarUrl
-          });
-        });
-        return cloudRes.friends;
-      }
-    } catch {}
-
-    try {
       const res = await this.post("GetFriendsList", {
         IncludeFacebookFriends: false,
         IncludeSteamFriends: false,
@@ -542,12 +529,14 @@ class PlayFabService {
         const prof = f.Profile || {};
         const friendData = {
           playFabId: f.FriendPlayFabId,
-          displayName: prof.DisplayName || f.Username || "Friend",
-          avatarUrl: prof.AvatarUrl || ""
+          displayName: prof.DisplayName || f.TitleDisplayName || f.Username || "Friend",
+          avatarUrl: prof.AvatarUrl || "",
+          username: f.Username || ""
         };
         this.userCache.set(friendData.playFabId, {
           displayName: friendData.displayName,
-          avatarUrl: friendData.avatarUrl
+          avatarUrl: friendData.avatarUrl,
+          username: friendData.username
         });
         return friendData;
       });
@@ -558,44 +547,52 @@ class PlayFabService {
     }
   }
 
-  async sendFriendRequest(target) {
+  async addFriend(identifier) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
-    const cleanTarget = String(target || "").trim();
-    if (!cleanTarget) throw new Error("Username or ID required");
-    const res = await this.executeScript("sendFriendRequest", { target: cleanTarget });
-    if (!res || !res.success) {
-      throw new Error(res?.error || "Failed to send friend request");
+    const cleanTarget = String(identifier || "").trim();
+    if (!cleanTarget) throw new Error("Username, Email, or PlayFab ID required");
+
+    let payload = {};
+    if (cleanTarget.includes("@")) {
+      payload = { FriendEmail: cleanTarget };
+    } else if (/^[0-9A-Fa-f]{14,18}$/i.test(cleanTarget)) {
+      payload = { FriendPlayFabId: cleanTarget };
+    } else {
+      payload = { FriendUsername: cleanTarget };
     }
-    return res;
+
+    try {
+      const res = await this.post("AddFriend", payload, true);
+      return { success: true, ...res };
+    } catch (err) {
+      if (!payload.FriendTitleDisplayName && !cleanTarget.includes("@")) {
+        try {
+          const res2 = await this.post("AddFriend", { FriendTitleDisplayName: cleanTarget }, true);
+          return { success: true, ...res2 };
+        } catch {}
+      }
+      throw err;
+    }
+  }
+
+  async sendFriendRequest(target) {
+    return await this.addFriend(target);
   }
 
   async getFriendRequests() {
-    if (!this.sessionTicket) return [];
-    const res = await this.executeScript("getFriendRequests", {}, { silent: true });
-    return (res && res.success && Array.isArray(res.requests)) ? res.requests : [];
+    return [];
   }
 
   async respondFriendRequest(fromId, action) {
-    if (!this.sessionTicket) throw new Error("Not authenticated");
-    const res = await this.executeScript("respondFriendRequest", { fromId, action });
-    if (!res || !res.success) {
-      throw new Error(res?.error || "Failed to respond to request");
+    if (action === "accept") {
+      return await this.addFriend(fromId);
     }
-    return res;
-  }
-
-  async addFriend(identifier) {
-    return await this.sendFriendRequest(identifier);
+    return { success: true };
   }
 
   async removeFriend(friendPlayFabId) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
-    try {
-      await this.executeScript("removeFriend", { friendId: friendPlayFabId });
-    } catch {}
-    try {
-      await this.post("RemoveFriend", { FriendPlayFabId: friendPlayFabId }, true);
-    } catch {}
+    await this.post("RemoveFriend", { FriendPlayFabId: friendPlayFabId }, true);
     return { success: true };
   }
 

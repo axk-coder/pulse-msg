@@ -58,8 +58,9 @@ class StateStore {
     if (this.state.activeContext === "dm" && this.state.activeDM) {
       return this.state.activeDM.dmId;
     }
-    if (this.state.activeContext === "server" && this.state.activeServerId && this.state.activeChannelId) {
-      return `srv_${this.state.activeServerId}_${this.state.activeChannelId}`;
+    if (this.state.activeContext === "server" && this.state.activeServerId) {
+      const ch = this.state.activeChannelId || "chat";
+      return `srv_${this.state.activeServerId}_${ch}`;
     }
     return "none";
   }
@@ -75,10 +76,10 @@ class StateStore {
         isGroup: !!this.state.activeDM.isGroup
       };
     }
-    if (this.state.activeContext === "server" && this.state.activeServerId && this.state.activeChannelId) {
+    if (this.state.activeContext === "server" && this.state.activeServerId) {
       return {
         serverId: this.state.activeServerId,
-        channelId: this.state.activeChannelId
+        channelId: this.state.activeChannelId || "chat"
       };
     }
     return { isGlobal: true };
@@ -156,9 +157,12 @@ class StateStore {
     this.state.activeDM = null;
 
     if (server && Array.isArray(server.channels) && server.channels.length > 0) {
-      this.state.activeChannelId = server.channels[0].id;
-    } else {
-      this.state.activeChannelId = null;
+      const exists = server.channels.some(c => c.id === this.state.activeChannelId);
+      if (!exists) {
+        this.state.activeChannelId = server.channels[0].id;
+      }
+    } else if (!this.state.activeChannelId) {
+      this.state.activeChannelId = "chat";
     }
 
     this.hydrateStreamMessages(this.getStreamKey());
