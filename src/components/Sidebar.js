@@ -75,16 +75,18 @@ export class Sidebar {
           <div class="sidebar-footer">
             <div class="sidebar-footer-user">
               <button class="user-profile-btn" id="sidebar-user-btn" title="User Settings">
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper" style="position: relative;">
                   <div class="avatar" id="footer-user-avatar">
                     ${user.avatarUrl 
                       ? `<img src="${this.escapeHtml(user.avatarUrl)}" class="avatar-img" alt="" />`
                       : user.displayName.charAt(0).toUpperCase()
                     }
                   </div>
+                  <div class="presence-badge-dot dot-${user.presence || 'online'}" id="footer-presence-dot"></div>
                 </div>
-                <div class="user-info-text">
+                <div class="user-info-text" style="display: flex; flex-direction: column; overflow: hidden;">
                   <span class="user-display-name" id="footer-user-name">${this.escapeHtml(user.displayName)}</span>
+                  <span class="user-status-text" id="footer-user-status" style="font-size: 10px; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(user.statusMessage || user.presence || 'online')}</span>
                 </div>
               </button>
 
@@ -498,19 +500,23 @@ export class Sidebar {
                   `;
                 }
 
-                const partnerProfile = this.partnerProfiles.get(dm.partnerId) || { displayName: "User", avatarUrl: "" };
+                const partnerProfile = this.partnerProfiles.get(dm.partnerId) || { displayName: "User", avatarUrl: "", presence: "offline", statusMessage: "" };
                 const initial = partnerProfile.displayName.charAt(0).toUpperCase();
 
                 return `
                   <li class="channel-item dm-item ${isActive ? 'active' : ''}" data-dm-id="${this.escapeHtml(dm.dmId)}" data-partner-id="${this.escapeHtml(dm.partnerId)}">
                     <div class="channel-item-left">
-                      <div class="dm-avatar-mini">
+                      <div class="dm-avatar-mini" style="position: relative;">
                         ${partnerProfile.avatarUrl 
                           ? `<img src="${this.escapeHtml(partnerProfile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
                           : initial
                         }
+                        <div class="presence-badge-dot dot-${partnerProfile.presence || 'offline'}"></div>
                       </div>
-                      <span>${this.escapeHtml(partnerProfile.displayName)}</span>
+                      <div style="display: flex; flex-direction: column; overflow: hidden;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.escapeHtml(partnerProfile.displayName)}</span>
+                        ${partnerProfile.statusMessage ? `<span style="font-size: 10px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.escapeHtml(partnerProfile.statusMessage)}</span>` : ''}
+                      </div>
                     </div>
                   </li>
                 `;
@@ -551,11 +557,17 @@ export class Sidebar {
   }
 
   updateUserProfile() {
-    const user = playFabService.getCurrentUser() || { displayName: "User", avatarUrl: "" };
+    const user = playFabService.getCurrentUser() || { displayName: "User", avatarUrl: "", presence: "online", statusMessage: "" };
     const nameEl = this.container.querySelector('#footer-user-name');
     const avatarEl = this.container.querySelector('#footer-user-avatar');
+    const statusEl = this.container.querySelector('#footer-user-status');
+    const presenceDot = this.container.querySelector('#footer-presence-dot');
 
     if (nameEl) nameEl.textContent = user.displayName;
+    if (statusEl) statusEl.textContent = user.statusMessage || user.presence || 'online';
+    if (presenceDot) {
+      presenceDot.className = `presence-badge-dot dot-${user.presence || 'online'}`;
+    }
     if (avatarEl) {
       if (user.avatarUrl) {
         avatarEl.innerHTML = `<img src="${this.escapeHtml(user.avatarUrl)}" class="avatar-img" alt="" />`;

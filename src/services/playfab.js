@@ -42,7 +42,9 @@ class PlayFabService {
       username: String(userProfile.username || "").trim().slice(0, 32),
       displayName: String(userProfile.displayName || userProfile.username || "User").trim().slice(0, 32),
       email: String(userProfile.email || "").trim().slice(0, 100),
-      avatarUrl: String(userProfile.avatarUrl || "").trim()
+      avatarUrl: String(userProfile.avatarUrl || "").trim(),
+      presence: String(userProfile.presence || "online").toLowerCase(),
+      statusMessage: String(userProfile.statusMessage || "").slice(0, 128)
     };
     localStorage.setItem("pulse_session_ticket", this.sessionTicket);
     localStorage.setItem("pulse_playfab_id", this.playFabId);
@@ -50,7 +52,9 @@ class PlayFabService {
     if (this.playFabId) {
       this.userCache.set(this.playFabId, {
         displayName: this.currentUser.displayName,
-        avatarUrl: this.currentUser.avatarUrl
+        avatarUrl: this.currentUser.avatarUrl,
+        presence: this.currentUser.presence,
+        statusMessage: this.currentUser.statusMessage
       });
     }
   }
@@ -303,15 +307,59 @@ class PlayFabService {
         const p = data.PlayerProfile;
         if (p.DisplayName) this.currentUser.displayName = p.DisplayName;
         if (p.AvatarUrl) this.currentUser.avatarUrl = p.AvatarUrl;
-        localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
-        if (this.playFabId) {
-          this.userCache.set(this.playFabId, {
-            displayName: this.currentUser.displayName,
-            avatarUrl: this.currentUser.avatarUrl || ""
-          });
-        }
       }
     } catch {}
+
+    try {
+      const cloudRes = await this.executeScript("getUserProfile", { userId: this.playFabId }, { silent: true });
+      if (cloudRes && cloudRes.success && cloudRes.profile) {
+        if (cloudRes.profile.displayName) this.currentUser.displayName = cloudRes.profile.displayName;
+        if (cloudRes.profile.avatarUrl) this.currentUser.avatarUrl = cloudRes.profile.avatarUrl;
+        if (cloudRes.profile.presence) this.currentUser.presence = cloudRes.profile.presence;
+        if (cloudRes.profile.statusMessage !== undefined) this.currentUser.statusMessage = cloudRes.profile.statusMessage;
+      }
+    } catch {}
+
+    localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+    if (this.playFabId) {
+      this.userCache.set(this.playFabId, {
+        displayName: this.currentUser.displayName,
+        avatarUrl: this.currentUser.avatarUrl || "",
+        presence: this.currentUser.presence || "online",
+        statusMessage: this.currentUser.statusMessage || ""
+      });
+    }
+  }
+
+  async updatePresence(presence, statusMessage = "") {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const cleanPresence = ['online', 'idle', 'dnd', 'offline'].includes(String(presence).toLowerCase()) 
+      ? String(presence).toLowerCase() 
+      : 'online';
+    const cleanStatusMessage = String(statusMessage || "").slice(0, 128);
+
+    if (this.currentUser) {
+      this.currentUser.presence = cleanPresence;
+      this.currentUser.statusMessage = cleanStatusMessage;
+      localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+      if (this.playFabId) {
+        this.userCache.set(this.playFabId, {
+          displayName: this.currentUser.displayName,
+          avatarUrl: this.currentUser.avatarUrl || "",
+          presence: cleanPresence,
+          statusMessage: cleanStatusMessage
+        });
+      }
+    }
+
+    try {
+      await this.executeScript("updateUserProfile", { 
+        presence: cleanPresence, 
+        statusMessage: cleanStatusMessage 
+      });
+    } catch {}
+
+    return { presence: cleanPresence, statusMessage: cleanStatusMessage };
   }
 
   async updateAvatarUrl(avatarUrl) {
@@ -324,7 +372,9 @@ class PlayFabService {
       if (this.playFabId) {
         this.userCache.set(this.playFabId, {
           displayName: this.currentUser.displayName,
-          avatarUrl: cleanUrl
+          avatarUrl: cleanUrl,
+          presence: this.currentUser.presence || "online",
+          statusMessage: this.currentUser.statusMessage || ""
         });
       }
     }
@@ -341,11 +391,13 @@ class PlayFabService {
   }
 
   async resolveUser(playFabId) {
-    if (!playFabId) return { displayName: "User", avatarUrl: "" };
+    if (!playFabId) return { displayName: "User", avatarUrl: "", presence: "offline", statusMessage: "" };
     if (this.currentUser && this.currentUser.playFabId === playFabId) {
       return {
         displayName: this.currentUser.displayName,
-        avatarUrl: this.currentUser.avatarUrl || ""
+        avatarUrl: this.currentUser.avatarUrl || "",
+        presence: this.currentUser.presence || "online",
+        statusMessage: this.currentUser.statusMessage || ""
       };
     }
     if (this.userCache.has(playFabId)) {
@@ -368,7 +420,9 @@ class PlayFabService {
       if (profile.DisplayName || profile.AvatarUrl) {
         const userData = {
           displayName: profile.DisplayName || "Member",
-          avatarUrl: profile.AvatarUrl || ""
+          avatarUrl: profile.AvatarUrl || "",
+          presence: "online",
+          statusMessage: ""
         };
         this.userCache.set(playFabId, userData);
         return userData;
@@ -380,14 +434,16 @@ class PlayFabService {
       if (cloudRes && cloudRes.success && cloudRes.profile && (cloudRes.profile.displayName || cloudRes.profile.avatarUrl)) {
         const userData = {
           displayName: cloudRes.profile.displayName || "Member",
-          avatarUrl: cloudRes.profile.avatarUrl || ""
+          avatarUrl: cloudRes.profile.avatarUrl || "",
+          presence: cloudRes.profile.presence || "offline",
+          statusMessage: cloudRes.profile.statusMessage || ""
         };
         this.userCache.set(playFabId, userData);
         return userData;
       }
     } catch {}
 
-    const fallback = { displayName: "Member", avatarUrl: "" };
+    const fallback = { displayName: "Member", avatarUrl: "", presence: "offline", statusMessage: "" };
     this.userCache.set(playFabId, fallback);
     return fallback;
   }

@@ -103,8 +103,121 @@ export class MessageList {
   }
 
   formatMentions(text) {
-    const escaped = this.escapeHtml(text);
-    return escaped.replace(/(@[a-zA-Z0-9_-]+)/g, '<span class="message-mention" style="background: rgba(255, 255, 255, 0.14); color: #ffffff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">$1</span>');
+    return this.formatMessageWithEmbeds(text).textHtml;
+  }
+
+  formatMessageWithEmbeds(rawText) {
+    if (!rawText) return { textHtml: '', embedsHtml: '' };
+    const text = String(rawText);
+    let escaped = this.escapeHtml(text);
+
+    escaped = escaped.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (m, lang, code) => {
+      return `<pre class="message-code-block"><code>${code}</code></pre>`;
+    });
+    escaped = escaped.replace(/`([^`]+)`/g, '<code class="message-inline-code">$1</code>');
+    escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    escaped = escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    escaped = escaped.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+    escaped = escaped.replace(/(@[a-zA-Z0-9_-]+)/g, '<span class="message-mention" style="background: rgba(255, 255, 255, 0.14); color: #ffffff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">$1</span>');
+
+    const embeds = [];
+    const handledUrls = new Set();
+
+    const inviteRegex = /(?:pulse:\/\/invite\/|https?:\/\/[^\s]+\/invite\/|discord\.gg\/|\b)(srv_[0-9]+_[0-9]+)\b/gi;
+    let inviteMatch;
+    while ((inviteMatch = inviteRegex.exec(text)) !== null) {
+      const srvId = inviteMatch[1];
+      if (!handledUrls.has(srvId)) {
+        handledUrls.add(srvId);
+        embeds.push(`
+          <div class="discord-invite-card" data-server-id="${this.escapeHtml(srvId)}">
+            <div class="discord-invite-badge">YOU'VE BEEN INVITED TO JOIN A SERVER</div>
+            <div class="discord-invite-body">
+              <div class="discord-invite-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <div class="discord-invite-info">
+                <div class="discord-invite-title">Pulse Server</div>
+                <div class="discord-invite-meta">
+                  <span class="presence-badge-dot dot-online"></span>
+                  <span>${this.escapeHtml(srvId)}</span>
+                </div>
+              </div>
+              <button type="button" class="btn-join-embed-server" data-server-id="${this.escapeHtml(srvId)}">
+                Join Server
+              </button>
+            </div>
+          </div>
+        `);
+      }
+    }
+
+    const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/gi;
+    let ytMatch;
+    while ((ytMatch = ytRegex.exec(text)) !== null) {
+      const videoId = ytMatch[1];
+      const fullUrl = ytMatch[0];
+      if (!handledUrls.has(fullUrl)) {
+        handledUrls.add(fullUrl);
+        embeds.push(`
+          <div class="discord-video-embed">
+            <iframe 
+              src="https://www.youtube-nocookie.com/embed/${this.escapeHtml(videoId)}" 
+              title="Video" 
+              frameborder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen
+            ></iframe>
+          </div>
+        `);
+      }
+    }
+
+    const mediaRegex = /https?:\/\/[^\s]+?\.(?:gif|png|jpg|jpeg|webp|svg)(?:\?[^\s]*)?|https?:\/\/media\.tenor\.com\/[^\s]+|https?:\/\/media[0-9]*\.giphy\.com\/[^\s]+/gi;
+    let mediaMatch;
+    while ((mediaMatch = mediaRegex.exec(text)) !== null) {
+      const mUrl = mediaMatch[0];
+      if (!handledUrls.has(mUrl)) {
+        handledUrls.add(mUrl);
+        embeds.push(`
+          <div class="discord-media-embed">
+            <a href="${this.escapeHtml(mUrl)}" target="_blank" rel="noopener noreferrer">
+              <img src="${this.escapeHtml(mUrl)}" alt="GIF/Image" class="discord-embed-image" loading="lazy" />
+            </a>
+          </div>
+        `);
+      }
+    }
+
+    const linkRegex = /https?:\/\/[^\s<>"'`]+/gi;
+    let linkMatch;
+    while ((linkMatch = linkRegex.exec(text)) !== null) {
+      const lUrl = linkMatch[0];
+      if (!handledUrls.has(lUrl) && !lUrl.includes('youtube.com') && !lUrl.includes('youtu.be')) {
+        handledUrls.add(lUrl);
+        let domain = '';
+        try { domain = new URL(lUrl).hostname; } catch { domain = lUrl; }
+        embeds.push(`
+          <div class="discord-link-embed">
+            <div class="discord-link-embed-border"></div>
+            <div class="discord-link-embed-content">
+              <span class="discord-link-site">${this.escapeHtml(domain)}</span>
+              <a href="${this.escapeHtml(lUrl)}" target="_blank" rel="noopener noreferrer" class="discord-link-title">${this.escapeHtml(lUrl)}</a>
+            </div>
+          </div>
+        `);
+      }
+    }
+
+    return {
+      textHtml: escaped,
+      embedsHtml: embeds.join('')
+    };
   }
 
   async updateMessages() {
@@ -187,9 +300,13 @@ export class MessageList {
               const avatarBox = card.querySelector('.message-avatar-box');
               if (nameSpan) nameSpan.textContent = profile.displayName;
               if (avatarBox) {
-                avatarBox.innerHTML = profile.avatarUrl 
-                  ? `<img src="${this.escapeHtml(profile.avatarUrl)}" class="message-avatar-img" alt="" />`
-                  : profile.displayName.charAt(0).toUpperCase();
+                avatarBox.innerHTML = `
+                  ${profile.avatarUrl 
+                    ? `<img src="${this.escapeHtml(profile.avatarUrl)}" class="message-avatar-img" alt="" />`
+                    : profile.displayName.charAt(0).toUpperCase()
+                  }
+                  <div class="presence-badge-dot dot-${profile.presence || 'online'}"></div>
+                `;
               }
             });
           });
@@ -261,7 +378,7 @@ export class MessageList {
         }
 
         const isOwn = currentUserId && msg.senderId === currentUserId;
-        const profile = this.resolvedProfiles.get(msg.senderId) || playFabService.userCache.get(msg.senderId) || { displayName: "User", avatarUrl: "" };
+        const profile = this.resolvedProfiles.get(msg.senderId) || playFabService.userCache.get(msg.senderId) || { displayName: "User", avatarUrl: "", presence: "online" };
         const initial = profile.displayName.charAt(0).toUpperCase();
 
         let roleBadge = '';
@@ -284,6 +401,8 @@ export class MessageList {
             </div>
           `;
         }
+
+        const { textHtml, embedsHtml } = this.formatMessageWithEmbeds(msg.text);
 
         html += `
           <div class="message-card" data-msg-id="${this.escapeHtml(msg.id)}" data-sender-id="${this.escapeHtml(msg.senderId)}" style="position: relative;">
@@ -315,11 +434,12 @@ export class MessageList {
             ${replyPreviewHtml}
 
             <div style="display: flex; gap: 12px; align-items: flex-start;">
-              <div class="message-avatar-box clickable-user-avatar" data-user-id="${this.escapeHtml(msg.senderId)}" style="cursor: pointer;">
+              <div class="message-avatar-box clickable-user-avatar" data-user-id="${this.escapeHtml(msg.senderId)}" style="cursor: pointer; position: relative;">
                 ${profile.avatarUrl 
                   ? `<img src="${this.escapeHtml(profile.avatarUrl)}" class="message-avatar-img" alt="" />`
                   : initial
                 }
+                <div class="presence-badge-dot dot-${profile.presence || 'online'}"></div>
               </div>
               <div class="message-body" style="flex: 1;">
                 <div class="message-meta">
@@ -328,7 +448,8 @@ export class MessageList {
                   ${isOwn ? '<span class="message-role-badge role-you">You</span>' : ''}
                   <span class="message-time">${this.formatTime(msg.timestamp)}</span>
                 </div>
-                <div class="message-text">${this.formatMentions(msg.text)}${msg.isEdited ? '<span class="message-edited-tag" style="font-size: 10px; color: #777777; margin-left: 4px;">(edited)</span>' : ''}</div>
+                <div class="message-text">${textHtml}${msg.isEdited ? '<span class="message-edited-tag" style="font-size: 10px; color: #777777; margin-left: 4px;">(edited)</span>' : ''}</div>
+                ${embedsHtml ? `<div class="message-embeds-container">${embedsHtml}</div>` : ''}
               </div>
             </div>
           </div>
@@ -464,6 +585,42 @@ export class MessageList {
       });
     });
 
+    this.streamEl.querySelectorAll('.btn-join-embed-server').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const serverId = btn.getAttribute('data-server-id');
+        if (!serverId) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Joining...';
+
+        try {
+          const res = await playFabService.joinServer(serverId);
+          if (res && res.success) {
+            btn.textContent = 'Joined!';
+            const servers = await playFabService.getUserServers(false);
+            appState.setServers(servers);
+            const joinedServer = servers.find(s => (s.serverId || s.id) === serverId) || res.server;
+            if (joinedServer) {
+              appState.setActiveServer(joinedServer, 'chat');
+            }
+          } else {
+            btn.textContent = 'Failed';
+            setTimeout(() => {
+              btn.disabled = false;
+              btn.textContent = 'Join Server';
+            }, 2000);
+          }
+        } catch (err) {
+          btn.textContent = 'Error';
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = 'Join Server';
+          }, 2000);
+        }
+      });
+    });
+
     if (this.shouldAutoScroll) {
       setTimeout(() => this.scrollToBottom(false), 20);
     }
@@ -476,7 +633,12 @@ export class MessageList {
       const fId = f.playFabId || f.FriendPlayFabId;
       if (fId && !this.resolvedProfiles.has(fId)) {
         if (f.displayName && f.displayName !== 'Friend') {
-          this.resolvedProfiles.set(fId, { displayName: f.displayName, avatarUrl: f.avatarUrl || '' });
+          this.resolvedProfiles.set(fId, { 
+            displayName: f.displayName, 
+            avatarUrl: f.avatarUrl || '',
+            presence: f.presence || 'offline',
+            statusMessage: f.statusMessage || ''
+          });
         } else {
           playFabService.resolveUser(fId).then(p => {
             this.resolvedProfiles.set(fId, p);
@@ -508,19 +670,23 @@ export class MessageList {
           <div style="display: flex; flex-direction: column; gap: 8px;">
             ${friends.map(f => {
               const fId = f.playFabId || f.FriendPlayFabId;
-              const profile = this.resolvedProfiles.get(fId) || { displayName: f.displayName || "Friend", avatarUrl: f.avatarUrl || "" };
+              const profile = this.resolvedProfiles.get(fId) || { displayName: f.displayName || "Friend", avatarUrl: f.avatarUrl || "", presence: "offline", statusMessage: "" };
               const initial = (profile.displayName || "F").charAt(0).toUpperCase();
 
               return `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
                   <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" class="btn-friend-profile" data-friend-id="${this.escapeHtml(fId)}">
-                    <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: #222222; border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: #222222; border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
                       ${profile.avatarUrl 
                         ? `<img src="${this.escapeHtml(profile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
                         : `<span style="font-weight: 700; color: #ffffff;">${initial}</span>`
                       }
+                      <div class="presence-badge-dot dot-${profile.presence || 'offline'}"></div>
                     </div>
-                    <span style="font-size: 14px; font-weight: 600; color: #ffffff;">${this.escapeHtml(profile.displayName)}</span>
+                    <div style="display: flex; flex-direction: column;">
+                      <span style="font-size: 14px; font-weight: 600; color: #ffffff;">${this.escapeHtml(profile.displayName)}</span>
+                      ${profile.statusMessage ? `<span style="font-size: 11px; color: var(--text-secondary);">${this.escapeHtml(profile.statusMessage)}</span>` : ''}
+                    </div>
                   </div>
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <button type="button" class="form-btn-submit btn-msg-friend" data-friend-id="${this.escapeHtml(fId)}" style="width: auto; padding: 6px 14px; margin: 0; font-size: 12px;">

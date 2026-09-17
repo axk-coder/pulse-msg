@@ -241,21 +241,25 @@ export class MemberList {
       `;
 
       ids.forEach(mId => {
-        const profile = this.memberProfiles.get(mId) || { displayName: "Member", avatarUrl: "" };
+        const profile = this.memberProfiles.get(mId) || { displayName: "Member", avatarUrl: "", presence: "offline", statusMessage: "" };
         const initial = profile.displayName.charAt(0).toUpperCase();
         const isSelf = playFabService.getCurrentUser()?.playFabId === mId;
 
         html += `
           <div class="member-row" data-user-id="${this.escapeHtml(mId)}">
-            <div class="member-avatar-box">
+            <div class="member-avatar-box" style="position: relative;">
               ${profile.avatarUrl 
                 ? `<img src="${this.escapeHtml(profile.avatarUrl)}" class="member-avatar-img" alt="" />`
                 : `<div class="member-avatar-letter">${initial}</div>`
               }
+              <div class="presence-badge-dot dot-${profile.presence || 'offline'}"></div>
             </div>
-            <div class="member-info">
-              <span class="member-name">${this.escapeHtml(profile.displayName)}</span>
-              ${role ? `<span class="member-role-badge">${this.escapeHtml(role.name)}</span>` : ''}
+            <div class="member-info" style="display: flex; flex-direction: column; overflow: hidden;">
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span class="member-name">${this.escapeHtml(profile.displayName)}</span>
+                ${role ? `<span class="member-role-badge">${this.escapeHtml(role.name)}</span>` : ''}
+              </div>
+              ${profile.statusMessage ? `<span class="member-status-message" style="font-size: 11px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(profile.statusMessage)}</span>` : ''}
             </div>
             ${!isSelf ? `
               <button type="button" class="member-dm-btn" data-user-id="${this.escapeHtml(mId)}" title="Direct Message">

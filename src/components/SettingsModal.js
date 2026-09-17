@@ -83,6 +83,29 @@ export class SettingsModal {
 
               <form id="settings-profile-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px;">
                 <div class="form-group">
+                  <label class="form-label" for="set-presence">Presence Status</label>
+                  <select id="set-presence" class="form-input" style="background: var(--bg-card); color: #fff; border: 1px solid var(--border-medium); cursor: pointer;" ${this.isLoading ? 'disabled' : ''}>
+                    <option value="online" ${(user.presence === 'online' || !user.presence) ? 'selected' : ''}>Online (Active)</option>
+                    <option value="idle" ${user.presence === 'idle' ? 'selected' : ''}>Idle (Away)</option>
+                    <option value="dnd" ${user.presence === 'dnd' ? 'selected' : ''}>Do Not Disturb</option>
+                    <option value="offline" ${user.presence === 'offline' ? 'selected' : ''}>Invisible / Offline</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="set-status-msg">Status Message</label>
+                  <input
+                    type="text"
+                    id="set-status-msg"
+                    class="form-input"
+                    placeholder="What's on your mind?"
+                    value="${this.escapeHtml(user.statusMessage || '')}"
+                    maxlength="128"
+                    ${this.isLoading ? 'disabled' : ''}
+                  />
+                </div>
+
+                <div class="form-group">
                   <label class="form-label" for="set-avatar-url">Profile Picture URL</label>
                   <input
                     type="url"
@@ -181,6 +204,8 @@ export class SettingsModal {
     const avatarPreview = this.container.querySelector('#settings-avatar-preview');
     const nameInput = this.container.querySelector('#set-display-name');
     const namePreview = this.container.querySelector('#settings-name-preview');
+    const presenceSelect = this.container.querySelector('#set-presence');
+    const statusMsgInput = this.container.querySelector('#set-status-msg');
 
     avatarUrlInput?.addEventListener('input', (e) => {
       const url = e.target.value.trim();
@@ -208,6 +233,8 @@ export class SettingsModal {
       const newName = nameInput ? nameInput.value.trim().slice(0, 32) : '';
       const emailInput = this.container.querySelector('#set-email');
       const newEmail = emailInput ? emailInput.value.trim().slice(0, 100) : '';
+      const newPresence = presenceSelect ? presenceSelect.value : 'online';
+      const newStatusMsg = statusMsgInput ? statusMsgInput.value.trim().slice(0, 128) : '';
 
       if (!newName) {
         this.error = 'Display name cannot be empty';
@@ -234,6 +261,9 @@ export class SettingsModal {
         }
         if (newEmail !== (user.email || '')) {
           await playFabService.updateEmail(newEmail);
+        }
+        if (newPresence !== (user.presence || 'online') || newStatusMsg !== (user.statusMessage || '')) {
+          await playFabService.updatePresence(newPresence, newStatusMsg);
         }
 
         this.message = 'Changes saved successfully';

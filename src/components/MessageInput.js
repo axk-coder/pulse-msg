@@ -18,13 +18,31 @@ const EMOJI_CATEGORIES = [
   }
 ];
 
+const CURATED_GIFS = [
+  { id: "g1", title: "GG / Gaming", tags: ["gaming", "gg", "win", "play"], url: "https://media.tenor.com/26Xm-gM6fWAAAAAM/cat-gaming.gif" },
+  { id: "g2", title: "Victory Dance", tags: ["dance", "hype", "happy", "party"], url: "https://media.tenor.com/kS9l57XG01EAAAAM/pepe-dance.gif" },
+  { id: "g3", title: "Anime Wave", tags: ["anime", "wave", "hello", "hi"], url: "https://media.tenor.com/4qJ5pG7e2ZAAAAAM/anime-wave.gif" },
+  { id: "g4", title: "Typing Fast", tags: ["code", "typing", "fast", "hacker", "work"], url: "https://media.tenor.com/E8f8A_B25fMAAAAM/cat-typing.gif" },
+  { id: "g5", title: "Thinking", tags: ["think", "hmm", "question", "smart"], url: "https://media.tenor.com/B94XmCqP-4EAAAAM/pepe-thinking.gif" },
+  { id: "g6", title: "Cheers / Party", tags: ["cheers", "celebrate", "toast", "congrats"], url: "https://media.tenor.com/9499i85K_78AAAAM/leonardo-dicaprio-cheers.gif" },
+  { id: "g7", title: "Mind Blown", tags: ["mind blown", "shocked", "wow", "omg"], url: "https://media.tenor.com/GfUXS21u04sAAAAM/mind-blown-explosion.gif" },
+  { id: "g8", title: "Cat Vibing", tags: ["vibe", "music", "cat", "chill"], url: "https://media.tenor.com/gK9p95T8uC8AAAAM/cat-vibe.gif" },
+  { id: "g9", title: "Thumbs Up", tags: ["thumbs up", "ok", "yes", "nice", "good"], url: "https://media.tenor.com/X4_0p5c0Q-MAAAAM/thumbs-up-computer.gif" },
+  { id: "g10", title: "Popcorn Watching", tags: ["popcorn", "drama", "watch", "meme"], url: "https://media.tenor.com/f_wWc3J8F7sAAAAM/popcorn-eating.gif" },
+  { id: "g11", title: "Anime Wow", tags: ["anime", "wow", "eyes", "sparkle"], url: "https://media.tenor.com/uR6eP4z-f_cAAAAM/anime-sparkle.gif" },
+  { id: "g12", title: "Skeleton Dance", tags: ["skeleton", "meme", "funny", "spooky"], url: "https://media.tenor.com/7b58w_B9CNEAAAAM/spooky-skeleton.gif" }
+];
+
 export class MessageInput {
   constructor(container, { onRequireAuth }) {
     this.container = container;
     this.callbacks = { onRequireAuth };
     this.isSending = false;
     this.isEmojiOpen = false;
+    this.isGifOpen = false;
     this.activeEmojiCategory = 0;
+    this.activeGifCategory = 'all';
+    this.gifSearchQuery = '';
     this.lastSentTime = 0;
     this.render();
 
@@ -64,6 +82,10 @@ export class MessageInput {
           ></textarea>
 
           <div class="input-actions">
+            <button class="icon-btn" id="gif-toggle-btn" type="button" title="GIFs" style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; padding: 4px 6px; border: 1px solid var(--border-subtle); border-radius: 4px;">
+              GIF
+            </button>
+
             <button class="icon-btn" id="emoji-toggle-btn" type="button" title="Emoji">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -92,6 +114,21 @@ export class MessageInput {
           </div>
           <div class="emoji-grid" id="emoji-grid"></div>
         </div>
+
+        <div class="gif-popover" id="gif-popover" style="display: none;">
+          <div class="gif-popover-header">
+            <input type="text" id="gif-search-input" class="gif-search-input" placeholder="Search GIFs..." autocomplete="off" />
+          </div>
+          <div class="gif-category-bar">
+            <button type="button" class="gif-tag-btn active" data-gif-tag="all">All</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="gaming">Gaming</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="anime">Anime</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="meme">Memes</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="dance">Dance</button>
+            <button type="button" class="gif-tag-btn" data-gif-tag="happy">Happy</button>
+          </div>
+          <div class="gif-results-grid" id="gif-results-grid"></div>
+        </div>
       </div>
     `;
 
@@ -100,12 +137,17 @@ export class MessageInput {
     this.emojiBtn = this.container.querySelector('#emoji-toggle-btn');
     this.emojiPopover = this.container.querySelector('#emoji-popover');
     this.emojiGrid = this.container.querySelector('#emoji-grid');
+    this.gifBtn = this.container.querySelector('#gif-toggle-btn');
+    this.gifPopover = this.container.querySelector('#gif-popover');
+    this.gifGrid = this.container.querySelector('#gif-results-grid');
+    this.gifSearchInput = this.container.querySelector('#gif-search-input');
     this.replyBar = this.container.querySelector('#reply-preview-bar');
     this.replyText = this.container.querySelector('#reply-preview-text');
     this.cancelReplyBtn = this.container.querySelector('#cancel-reply-btn');
 
     this.attachEvents();
     this.renderEmojiGrid();
+    this.renderGifGrid();
     this.updatePlaceholder();
     this.updateReplyBar();
   }
@@ -140,6 +182,39 @@ export class MessageInput {
       e.stopPropagation();
       this.isEmojiOpen = !this.isEmojiOpen;
       this.emojiPopover.style.display = this.isEmojiOpen ? 'flex' : 'none';
+      if (this.isEmojiOpen && this.isGifOpen) {
+        this.isGifOpen = false;
+        this.gifPopover.style.display = 'none';
+      }
+    });
+
+    this.gifBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.isGifOpen = !this.isGifOpen;
+      this.gifPopover.style.display = this.isGifOpen ? 'flex' : 'none';
+      if (this.isGifOpen) {
+        if (this.isEmojiOpen) {
+          this.isEmojiOpen = false;
+          this.emojiPopover.style.display = 'none';
+        }
+        setTimeout(() => this.gifSearchInput?.focus(), 50);
+      }
+    });
+
+    this.gifSearchInput?.addEventListener('input', (e) => {
+      this.gifSearchQuery = e.target.value.toLowerCase().trim();
+      this.renderGifGrid();
+    });
+
+    const gifTagBtns = this.container.querySelectorAll('.gif-tag-btn');
+    gifTagBtns.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        gifTagBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeGifCategory = btn.getAttribute('data-gif-tag');
+        this.renderGifGrid();
+      });
     });
 
     const catBtns = this.container.querySelectorAll('.emoji-cat-btn');
@@ -158,6 +233,52 @@ export class MessageInput {
         this.isEmojiOpen = false;
         this.emojiPopover.style.display = 'none';
       }
+      if (this.isGifOpen && !this.gifPopover.contains(e.target) && e.target !== this.gifBtn) {
+        this.isGifOpen = false;
+        this.gifPopover.style.display = 'none';
+      }
+    });
+  }
+
+  renderGifGrid() {
+    if (!this.gifGrid) return;
+    const q = this.gifSearchQuery;
+    const cat = this.activeGifCategory;
+
+    let filtered = CURATED_GIFS;
+    if (cat && cat !== 'all') {
+      filtered = filtered.filter(g => g.tags.includes(cat) || g.title.toLowerCase().includes(cat));
+    }
+    if (q) {
+      filtered = filtered.filter(g => g.title.toLowerCase().includes(q) || g.tags.some(t => t.includes(q)) || g.url.toLowerCase().includes(q));
+    }
+
+    if (filtered.length === 0) {
+      this.gifGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">
+          No matching GIFs found.
+        </div>
+      `;
+      return;
+    }
+
+    this.gifGrid.innerHTML = filtered.map(g => `
+      <div class="gif-item-card" data-gif-url="${g.url}" title="${g.title}">
+        <img src="${g.url}" alt="${g.title}" loading="lazy" />
+        <span class="gif-item-label">${g.title}</span>
+      </div>
+    `).join('');
+
+    this.gifGrid.querySelectorAll('.gif-item-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const gifUrl = card.getAttribute('data-gif-url');
+        if (gifUrl) {
+          this.sendDirectMessage(gifUrl);
+          this.isGifOpen = false;
+          this.gifPopover.style.display = 'none';
+        }
+      });
     });
   }
 
@@ -338,6 +459,66 @@ export class MessageInput {
       this.isSending = false;
       this.sendBtn.disabled = false;
       this.textarea.focus();
+    }
+  }
+
+  async sendDirectMessage(text) {
+    if (!this.canUserSend()) return;
+    const cleanText = String(text || "").trim();
+    if (!cleanText || this.isSending) return;
+
+    if (!playFabService.isAuthenticated()) {
+      this.callbacks.onRequireAuth();
+      return;
+    }
+
+    const now = Date.now();
+    if (now - this.lastSentTime < 1000) {
+      return;
+    }
+
+    const currentUser = playFabService.getCurrentUser() || { displayName: "User", playFabId: "" };
+    const targetParam = appState.getTargetParam();
+    const streamKey = appState.getStreamKey();
+    const state = appState.getState();
+    const replyingTo = state.replyingTo;
+
+    this.sendBtn.disabled = true;
+    this.isSending = true;
+    this.lastSentTime = now;
+
+    soundSynth.playSent();
+
+    const optimisticMsg = {
+      id: "opt_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      senderId: currentUser.playFabId,
+      text: cleanText,
+      timestamp: new Date().toISOString(),
+      replyTo: replyingTo ? {
+        id: replyingTo.id,
+        senderId: replyingTo.senderId,
+        text: replyingTo.text
+      } : null
+    };
+
+    appState.addMessage(streamKey, optimisticMsg);
+
+    const sendPayload = Object.assign({}, targetParam);
+    if (replyingTo) {
+      sendPayload.replyTo = {
+        id: replyingTo.id,
+        senderId: replyingTo.senderId,
+        text: replyingTo.text
+      };
+      appState.clearReplyingTo();
+    }
+
+    try {
+      await playFabService.sendMessage(sendPayload, cleanText);
+      pollingEngine.pollNow();
+    } catch {} finally {
+      this.isSending = false;
+      this.sendBtn.disabled = false;
     }
   }
 }

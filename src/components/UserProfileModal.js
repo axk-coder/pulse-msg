@@ -118,15 +118,24 @@ export class UserProfileModal {
           </div>
 
           <div style="padding: 0 20px 20px; position: relative;">
-            <div style="width: 64px; height: 64px; border-radius: 50%; background: #111111; border: 4px solid #161616; margin-top: -32px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff;">
-              ${this.profile?.avatarUrl 
-                ? `<img src="${this.escapeHtml(this.profile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
-                : initial
-              }
+            <div style="position: relative; width: 64px; height: 64px; margin-top: -32px;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: #111111; border: 4px solid #161616; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff;">
+                ${this.profile?.avatarUrl 
+                  ? `<img src="${this.escapeHtml(this.profile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
+                  : initial
+                }
+              </div>
+              <div class="presence-badge-dot dot-${this.profile?.presence || 'offline'}" style="bottom: 2px; right: 2px; width: 14px; height: 14px;"></div>
             </div>
 
             <div style="margin-top: 12px;">
               <h3 style="font-size: 16px; font-weight: 700; color: #ffffff;">${this.escapeHtml(displayName)}</h3>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px; text-transform: capitalize;">${this.escapeHtml(this.profile?.presence || 'offline')}</div>
+              ${this.profile?.statusMessage ? `
+                <div style="margin-top: 8px; padding: 6px 10px; background: #202020; border: 1px solid #303030; border-radius: 4px; font-size: 12px; color: #e0e0e0;">
+                  ${this.escapeHtml(this.profile.statusMessage)}
+                </div>
+              ` : ''}
             </div>
 
             ${!isSelf ? `
