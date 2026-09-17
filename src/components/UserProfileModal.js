@@ -129,8 +129,19 @@ export class UserProfileModal {
             </div>
 
             <div style="margin-top: 12px;">
-              <h3 style="font-size: 16px; font-weight: 700; color: #ffffff;">${this.escapeHtml(displayName)}</h3>
-              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px; text-transform: capitalize;">${this.escapeHtml(this.profile?.presence || 'offline')}</div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <h3 style="font-size: 16px; font-weight: 700; color: #ffffff;">${this.escapeHtml(displayName)}</h3>
+                ${(this.profile?.appRank && !this.profile.appRank.hidden) ? `
+                  <span class="app-rank-badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(255, 255, 255, 0.08); border: 1px solid ${this.escapeHtml(this.profile.appRank.color || '#ffffff')}; color: ${this.escapeHtml(this.profile.appRank.color || '#ffffff')};">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>${this.escapeHtml(this.profile.appRank.name)}</span>
+                  </span>
+                ` : ''}
+              </div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 1px;">@${this.escapeHtml(this.profile?.username || displayName.toLowerCase().replace(/\s+/g, ''))}</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: capitalize;">${this.escapeHtml(this.profile?.presence || 'offline')}</div>
               ${this.profile?.statusMessage ? `
                 <div style="margin-top: 8px; padding: 6px 10px; background: #202020; border: 1px solid #303030; border-radius: 4px; font-size: 12px; color: #e0e0e0;">
                   ${this.escapeHtml(this.profile.statusMessage)}

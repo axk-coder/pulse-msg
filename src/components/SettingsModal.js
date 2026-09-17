@@ -77,7 +77,18 @@ export class SettingsModal {
                   }
                 </div>
                 <div style="display: flex; flex-direction: column; overflow: hidden;">
-                  <span id="settings-name-preview" style="font-size: 16px; font-weight: 700; color: #ffffff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(user.displayName)}</span>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span id="settings-name-preview" style="font-size: 16px; font-weight: 700; color: #ffffff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(user.displayName)}</span>
+                    ${(user.appRank && !user.appRank.hidden) ? `
+                      <span class="app-rank-badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(255, 255, 255, 0.08); border: 1px solid ${this.escapeHtml(user.appRank.color || '#ffffff')}; color: ${this.escapeHtml(user.appRank.color || '#ffffff')};">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <span>${this.escapeHtml(user.appRank.name)}</span>
+                      </span>
+                    ` : ''}
+                  </div>
+                  <span style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">@${this.escapeHtml(user.username || user.displayName.toLowerCase().replace(/\s+/g, ''))}</span>
                 </div>
               </div>
 

@@ -301,12 +301,39 @@ class PlayFabService {
     try {
       const data = await this.post("GetPlayerProfile", {
         PlayFabId: this.playFabId,
-        ProfileConstraints: { ShowDisplayName: true, ShowAvatarUrl: true }
+        ProfileConstraints: { ShowDisplayName: true, ShowAvatarUrl: true, ShowUsername: true }
       }, true);
       if (data && data.PlayerProfile) {
         const p = data.PlayerProfile;
         if (p.DisplayName) this.currentUser.displayName = p.DisplayName;
         if (p.AvatarUrl) this.currentUser.avatarUrl = p.AvatarUrl;
+        if (p.Username) this.currentUser.username = p.Username;
+      }
+    } catch {}
+
+    try {
+      const readOnlyData = await this.post("GetUserReadOnlyData", {
+        PlayFabId: this.playFabId,
+        Keys: ["RankName", "RankColor", "RankPerms", "Rankhidden"]
+      }, true);
+      if (readOnlyData && readOnlyData.Data) {
+        const d = readOnlyData.Data;
+        const rName = d.RankName ? d.RankName.Value : "";
+        const rColor = d.RankColor ? d.RankColor.Value : "";
+        const rPermsRaw = d.RankPerms ? d.RankPerms.Value : "";
+        const rHidden = d.Rankhidden ? (d.Rankhidden.Value === "true" || d.Rankhidden.Value === true) : false;
+        let perms = {};
+        if (rPermsRaw) {
+          try { perms = JSON.parse(rPermsRaw); } catch {}
+        }
+        if (rName) {
+          this.currentUser.appRank = {
+            name: rName,
+            color: rColor || "#ffffff",
+            perms: perms,
+            hidden: rHidden
+          };
+        }
       }
     } catch {}
 
@@ -315,8 +342,10 @@ class PlayFabService {
       if (cloudRes && cloudRes.success && cloudRes.profile) {
         if (cloudRes.profile.displayName) this.currentUser.displayName = cloudRes.profile.displayName;
         if (cloudRes.profile.avatarUrl) this.currentUser.avatarUrl = cloudRes.profile.avatarUrl;
+        if (cloudRes.profile.username) this.currentUser.username = cloudRes.profile.username;
         if (cloudRes.profile.presence) this.currentUser.presence = cloudRes.profile.presence;
         if (cloudRes.profile.statusMessage !== undefined) this.currentUser.statusMessage = cloudRes.profile.statusMessage;
+        if (cloudRes.profile.appRank) this.currentUser.appRank = cloudRes.profile.appRank;
       }
     } catch {}
 
@@ -324,9 +353,11 @@ class PlayFabService {
     if (this.playFabId) {
       this.userCache.set(this.playFabId, {
         displayName: this.currentUser.displayName,
+        username: this.currentUser.username || "",
         avatarUrl: this.currentUser.avatarUrl || "",
         presence: this.currentUser.presence || "online",
-        statusMessage: this.currentUser.statusMessage || ""
+        statusMessage: this.currentUser.statusMessage || "",
+        appRank: this.currentUser.appRank || null
       });
     }
   }
@@ -345,9 +376,11 @@ class PlayFabService {
       if (this.playFabId) {
         this.userCache.set(this.playFabId, {
           displayName: this.currentUser.displayName,
+          username: this.currentUser.username || "",
           avatarUrl: this.currentUser.avatarUrl || "",
           presence: cleanPresence,
-          statusMessage: cleanStatusMessage
+          statusMessage: cleanStatusMessage,
+          appRank: this.currentUser.appRank || null
         });
       }
     }
@@ -372,9 +405,11 @@ class PlayFabService {
       if (this.playFabId) {
         this.userCache.set(this.playFabId, {
           displayName: this.currentUser.displayName,
+          username: this.currentUser.username || "",
           avatarUrl: cleanUrl,
           presence: this.currentUser.presence || "online",
-          statusMessage: this.currentUser.statusMessage || ""
+          statusMessage: this.currentUser.statusMessage || "",
+          appRank: this.currentUser.appRank || null
         });
       }
     }
@@ -391,13 +426,15 @@ class PlayFabService {
   }
 
   async resolveUser(playFabId) {
-    if (!playFabId) return { displayName: "User", avatarUrl: "", presence: "offline", statusMessage: "" };
+    if (!playFabId) return { displayName: "User", username: "", avatarUrl: "", presence: "offline", statusMessage: "", appRank: null };
     if (this.currentUser && this.currentUser.playFabId === playFabId) {
       return {
         displayName: this.currentUser.displayName,
+        username: this.currentUser.username || "",
         avatarUrl: this.currentUser.avatarUrl || "",
         presence: this.currentUser.presence || "online",
-        statusMessage: this.currentUser.statusMessage || ""
+        statusMessage: this.currentUser.statusMessage || "",
+        appRank: this.currentUser.appRank || null
       };
     }
     if (this.userCache.has(playFabId)) {
@@ -407,45 +444,73 @@ class PlayFabService {
       }
     }
 
+    let resolvedData = {
+      playFabId: playFabId,
+      displayName: "Member",
+      username: "",
+      avatarUrl: "",
+      presence: "online",
+      statusMessage: "",
+      appRank: null
+    };
+
     try {
       const res = await this.post("GetPlayerProfile", {
         PlayFabId: playFabId,
         ProfileConstraints: {
           ShowDisplayName: true,
-          ShowAvatarUrl: true
+          ShowAvatarUrl: true,
+          ShowUsername: true
         }
       }, true);
 
       const profile = res && res.PlayerProfile ? res.PlayerProfile : {};
-      if (profile.DisplayName || profile.AvatarUrl) {
-        const userData = {
-          displayName: profile.DisplayName || "Member",
-          avatarUrl: profile.AvatarUrl || "",
-          presence: "online",
-          statusMessage: ""
-        };
-        this.userCache.set(playFabId, userData);
-        return userData;
+      if (profile.DisplayName) resolvedData.displayName = profile.DisplayName;
+      if (profile.Username) resolvedData.username = profile.Username;
+      if (profile.AvatarUrl) resolvedData.avatarUrl = profile.AvatarUrl;
+    } catch {}
+
+    try {
+      const readOnlyData = await this.post("GetUserReadOnlyData", {
+        PlayFabId: playFabId,
+        Keys: ["RankName", "RankColor", "RankPerms", "Rankhidden"]
+      }, true);
+      if (readOnlyData && readOnlyData.Data) {
+        const d = readOnlyData.Data;
+        const rName = d.RankName ? d.RankName.Value : "";
+        const rColor = d.RankColor ? d.RankColor.Value : "";
+        const rPermsRaw = d.RankPerms ? d.RankPerms.Value : "";
+        const rHidden = d.Rankhidden ? (d.Rankhidden.Value === "true" || d.Rankhidden.Value === true) : false;
+        let perms = {};
+        if (rPermsRaw) {
+          try { perms = JSON.parse(rPermsRaw); } catch {}
+        }
+        if (rName) {
+          resolvedData.appRank = {
+            name: rName,
+            color: rColor || "#ffffff",
+            perms: perms,
+            hidden: rHidden
+          };
+        }
       }
     } catch {}
 
     try {
       const cloudRes = await this.executeScript("getUserProfile", { userId: playFabId }, { silent: true });
-      if (cloudRes && cloudRes.success && cloudRes.profile && (cloudRes.profile.displayName || cloudRes.profile.avatarUrl)) {
-        const userData = {
-          displayName: cloudRes.profile.displayName || "Member",
-          avatarUrl: cloudRes.profile.avatarUrl || "",
-          presence: cloudRes.profile.presence || "offline",
-          statusMessage: cloudRes.profile.statusMessage || ""
-        };
-        this.userCache.set(playFabId, userData);
-        return userData;
+      if (cloudRes && cloudRes.success && cloudRes.profile) {
+        const p = cloudRes.profile;
+        if (p.displayName) resolvedData.displayName = p.displayName;
+        if (p.username) resolvedData.username = p.username;
+        if (p.avatarUrl) resolvedData.avatarUrl = p.avatarUrl;
+        if (p.presence) resolvedData.presence = p.presence;
+        if (p.statusMessage !== undefined) resolvedData.statusMessage = p.statusMessage;
+        if (p.appRank) resolvedData.appRank = p.appRank;
       }
     } catch {}
 
-    const fallback = { displayName: "Member", avatarUrl: "", presence: "offline", statusMessage: "" };
-    this.userCache.set(playFabId, fallback);
-    return fallback;
+    this.userCache.set(playFabId, resolvedData);
+    return resolvedData;
   }
 
   async getFriendsList() {
