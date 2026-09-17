@@ -51,6 +51,14 @@ class StateStore {
     }
   }
 
+  getCurrentUserId() {
+    try {
+      return localStorage.getItem("pulse_playfab_id") || "";
+    } catch {
+      return "";
+    }
+  }
+
   getStreamKey() {
     if (this.state.activeContext === "global") {
       return "global_chat";
@@ -59,7 +67,7 @@ class StateStore {
       if (this.state.activeDM.dmId) {
         return this.state.activeDM.dmId;
       }
-      const myId = playFabService.getCurrentUser()?.playFabId;
+      const myId = this.getCurrentUserId();
       if (myId && this.state.activeDM.partnerId) {
         const p = this.state.activeDM.partnerId;
         return (myId < p) ? `dm_${myId}_${p}` : `dm_${p}_${myId}`;
@@ -78,7 +86,7 @@ class StateStore {
       return { isGlobal: true };
     }
     if (this.state.activeContext === "dm" && this.state.activeDM) {
-      const myId = playFabService.getCurrentUser()?.playFabId;
+      const myId = this.getCurrentUserId();
       let dId = this.state.activeDM.dmId;
       if (!dId && myId && this.state.activeDM.partnerId) {
         const p = this.state.activeDM.partnerId;

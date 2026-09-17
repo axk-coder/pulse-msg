@@ -371,21 +371,27 @@ export class MessageList {
     }
 
     let channelTitle = 'Messages';
+    let starterIcon = '#';
     if (state.activeContext === 'global') {
-      channelTitle = '#global-chat';
+      channelTitle = 'global-chat';
+      starterIcon = '#';
     } else if (state.activeContext === 'server') {
-      channelTitle = '#' + (state.activeChannelId || 'chat');
+      channelTitle = state.activeChannelId || 'chat';
+      starterIcon = '#';
     } else if (state.activeContext === 'dm' && state.activeDM) {
       if (state.activeDM.isGroup) {
-        channelTitle = '@' + (state.activeDM.name || 'Group Chat');
+        channelTitle = state.activeDM.name || 'Group Chat';
+        starterIcon = '@';
       } else {
-        channelTitle = 'Direct Message';
+        const partnerName = (state.activeDM.partnerId && state.userProfiles[state.activeDM.partnerId]?.displayName) || 'Direct Message';
+        channelTitle = partnerName;
+        starterIcon = '@';
       }
     }
 
     let html = `
       <div class="channel-starter">
-        <div class="channel-starter-hash">#</div>
+        <div class="channel-starter-hash">${starterIcon}</div>
         <h2 class="channel-starter-title">${this.escapeHtml(channelTitle)}</h2>
       </div>
     `;
