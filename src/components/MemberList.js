@@ -159,7 +159,25 @@ export class MemberList {
       `;
     });
 
+    html += `
+      <div style="padding: 16px 10px; margin-top: auto; border-top: 1px solid var(--border-subtle);">
+        <button type="button" class="form-btn-submit" id="btn-leave-group-dm" style="width: 100%; padding: 7px; font-size: 12px; background: #2a2a2a; border-color: #444444; color: #ffffff;">
+          Leave Group
+        </button>
+      </div>
+    `;
+
     this.listContainer.innerHTML = html;
+
+    const leaveGrpBtn = this.listContainer.querySelector('#btn-leave-group-dm');
+    leaveGrpBtn?.addEventListener('click', async () => {
+      try {
+        await playFabService.leaveGroupDM(gdmId);
+        const dms = await playFabService.getUserDMs();
+        appState.setDMs(dms);
+        appState.setActiveDM(null);
+      } catch {}
+    });
 
     const addBtn = this.listContainer.querySelector('#gdm-add-btn');
     addBtn?.addEventListener('click', async () => {
@@ -200,6 +218,8 @@ export class MemberList {
         const targetId = btn.getAttribute('data-user-id');
         if (targetId) {
           await playFabService.manageGroupDM(gdmId, 'removeMember', { userId: targetId });
+          const dms = await playFabService.getUserDMs();
+          appState.setDMs(dms);
           this.renderGroupDMMembers(gdmId);
         }
       });

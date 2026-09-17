@@ -10,6 +10,8 @@ class PlayFabService {
     this.currentUser = null;
     this.lastSendTimestamp = 0;
     this.userCache = new Map();
+    this.fileCache = new Map();
+    this.fileInFlight = new Map();
     this.pendingRequests = 0;
 
     const storedUser = localStorage.getItem("pulse_user");
@@ -718,8 +720,17 @@ class PlayFabService {
     return await this.executeScript("manageGroupDM", Object.assign({ dmId, action }, extraParams));
   }
 
+  async leaveGroupDM(dmId) {
+    return await this.executeScript("leaveGroupDM", { dmId });
+  }
+
   async getGroupMeta(dmId, silent = true) {
     return await this.executeScript("getGroupMeta", { dmId }, { silent });
+  }
+
+  getCachedFile(fileId) {
+    if (!fileId) return null;
+    return this.fileCache.get(String(fileId).trim()) || null;
   }
 
   async uploadFile(file) {
@@ -747,20 +758,47 @@ class PlayFabService {
       throw new Error(res?.error || "Failed to upload file");
     }
 
+    if (res.fileId) {
+      this.fileCache.set(res.fileId, {
+        fileName: file.name,
+        fileType: file.type || "application/octet-stream",
+        fileSize: file.size,
+        data: base64Data
+      });
+    }
+
     return res;
   }
 
   async downloadFile(fileId) {
-    if (!this.sessionTicket) throw new Error("Not authenticated");
     const cleanId = String(fileId || "").trim();
     if (!cleanId) throw new Error("File ID required");
 
-    const res = await this.executeScript("downloadFile", { fileId: cleanId });
-    if (!res || !res.success || !res.file) {
-      throw new Error(res?.error || "File could not be found");
+    if (this.fileCache.has(cleanId)) {
+      return this.fileCache.get(cleanId);
     }
 
-    return res.file;
+    if (this.fileInFlight.has(cleanId)) {
+      return await this.fileInFlight.get(cleanId);
+    }
+
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+
+    const reqPromise = (async () => {
+      try {
+        const res = await this.executeScript("downloadFile", { fileId: cleanId }, { silent: true });
+        if (!res || !res.success || !res.file) {
+          throw new Error(res?.error || "File could not be found");
+        }
+        this.fileCache.set(cleanId, res.file);
+        return res.file;
+      } finally {
+        this.fileInFlight.delete(cleanId);
+      }
+    })();
+
+    this.fileInFlight.set(cleanId, reqPromise);
+    return await reqPromise;
   }
 }
 

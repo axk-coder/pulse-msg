@@ -148,6 +148,7 @@ export class MessageList {
         }
 
         const isImage = fType.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fName);
+        const cachedFile = playFabService.getCachedFile(fId);
 
         embeds.push(`
           <div class="discord-file-embed" data-file-id="${this.escapeHtml(fId)}">
@@ -172,8 +173,8 @@ export class MessageList {
               </button>
             </div>
             ${isImage ? `
-              <div class="file-image-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; max-height: 280px; overflow: hidden; border-radius: 4px; display: none;">
-                <img src="" alt="${this.escapeHtml(fName)}" style="max-width: 100%; max-height: 280px; object-fit: contain; display: block;" />
+              <div class="file-image-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; max-height: 280px; overflow: hidden; border-radius: 4px; ${cachedFile && cachedFile.data ? 'display: block;' : 'display: none;'}">
+                <img src="${cachedFile && cachedFile.data ? this.escapeHtml(cachedFile.data) : ''}" alt="${this.escapeHtml(fName)}" style="max-width: 100%; max-height: 280px; object-fit: contain; display: block;" />
               </div>
             ` : ''}
           </div>
@@ -715,14 +716,12 @@ export class MessageList {
 
     this.streamEl.querySelectorAll('.file-image-preview').forEach(previewEl => {
       const fileId = previewEl.getAttribute('data-file-id');
-      if (fileId && previewEl.style.display === 'none') {
+      const img = previewEl.querySelector('img');
+      if (fileId && (!img || !img.getAttribute('src'))) {
         playFabService.downloadFile(fileId).then(fileObj => {
-          if (fileObj && fileObj.data) {
-            const img = previewEl.querySelector('img');
-            if (img) {
-              img.src = fileObj.data;
-              previewEl.style.display = 'block';
-            }
+          if (fileObj && fileObj.data && img) {
+            img.src = fileObj.data;
+            previewEl.style.display = 'block';
           }
         }).catch(() => {});
       }
