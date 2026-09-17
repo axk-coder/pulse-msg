@@ -40,6 +40,14 @@ export class CreditsModal {
           <div class="modal-body">
             <div class="credits-list">
               <div class="credits-item">
+                <div class="credits-item-name">Axk</div>
+                <div class="credits-item-desc">Creator and lead developer.</div>
+              </div>
+              <div class="credits-item">
+                <div class="credits-item-name">AI Models</div>
+                <div class="credits-item-desc">Assisted in design, architecture, and code development.</div>
+              </div>
+              <div class="credits-item">
                 <div class="credits-item-name">PlayFab Client REST API</div>
                 <div class="credits-item-desc">Authentication, CloudScript serverless runtime, and player profile management.</div>
               </div>
