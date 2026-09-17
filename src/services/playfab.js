@@ -427,7 +427,7 @@ class PlayFabService {
     return cleanUrl;
   }
 
-  async resolveUser(playFabId) {
+  async resolveUser(playFabId, force = false) {
     if (!playFabId) return { displayName: "User", username: "", avatarUrl: "", presence: "offline", statusMessage: "", appRank: null };
     if (this.currentUser && this.currentUser.playFabId === playFabId) {
       return {
@@ -436,12 +436,13 @@ class PlayFabService {
         avatarUrl: this.currentUser.avatarUrl || "",
         presence: this.currentUser.presence || "online",
         statusMessage: this.currentUser.statusMessage || "",
-        appRank: this.currentUser.appRank || null
+        appRank: this.currentUser.appRank || null,
+        isFullProfile: true
       };
     }
-    if (this.userCache.has(playFabId)) {
+    if (!force && this.userCache.has(playFabId)) {
       const cached = this.userCache.get(playFabId);
-      if (cached && (cached.avatarUrl || cached.displayName !== "Member")) {
+      if (cached && cached.isFullProfile) {
         return cached;
       }
     }
@@ -451,52 +452,11 @@ class PlayFabService {
       displayName: "Member",
       username: "",
       avatarUrl: "",
-      presence: "online",
+      presence: "offline",
       statusMessage: "",
-      appRank: null
+      appRank: null,
+      isFullProfile: true
     };
-
-    try {
-      const res = await this.post("GetPlayerProfile", {
-        PlayFabId: playFabId,
-        ProfileConstraints: {
-          ShowDisplayName: true,
-          ShowAvatarUrl: true,
-          ShowUsername: true
-        }
-      }, true);
-
-      const profile = res && res.PlayerProfile ? res.PlayerProfile : {};
-      if (profile.DisplayName) resolvedData.displayName = profile.DisplayName;
-      if (profile.Username) resolvedData.username = profile.Username;
-      if (profile.AvatarUrl) resolvedData.avatarUrl = profile.AvatarUrl;
-    } catch {}
-
-    try {
-      const readOnlyData = await this.post("GetUserReadOnlyData", {
-        PlayFabId: playFabId,
-        Keys: ["RankName", "RankColor", "RankPerms", "Rankhidden"]
-      }, true);
-      if (readOnlyData && readOnlyData.Data) {
-        const d = readOnlyData.Data;
-        const rName = d.RankName ? d.RankName.Value : "";
-        const rColor = d.RankColor ? d.RankColor.Value : "";
-        const rPermsRaw = d.RankPerms ? d.RankPerms.Value : "";
-        const rHidden = d.Rankhidden ? (d.Rankhidden.Value === "true" || d.Rankhidden.Value === true) : false;
-        let perms = {};
-        if (rPermsRaw) {
-          try { perms = JSON.parse(rPermsRaw); } catch {}
-        }
-        if (rName) {
-          resolvedData.appRank = {
-            name: rName,
-            color: rColor || "#ffffff",
-            perms: perms,
-            hidden: rHidden
-          };
-        }
-      }
-    } catch {}
 
     try {
       const cloudRes = await this.executeScript("getUserProfile", { userId: playFabId }, { silent: true });
@@ -510,6 +470,50 @@ class PlayFabService {
         if (p.appRank) resolvedData.appRank = p.appRank;
       }
     } catch {}
+
+    if (!resolvedData.username || !resolvedData.appRank) {
+      try {
+        const res = await this.post("GetPlayerProfile", {
+          PlayFabId: playFabId,
+          ProfileConstraints: {
+            ShowDisplayName: true,
+            ShowAvatarUrl: true,
+            ShowUsername: true
+          }
+        }, true);
+
+        const profile = res && res.PlayerProfile ? res.PlayerProfile : {};
+        if (profile.DisplayName && resolvedData.displayName === "Member") resolvedData.displayName = profile.DisplayName;
+        if (profile.Username && !resolvedData.username) resolvedData.username = profile.Username;
+        if (profile.AvatarUrl && !resolvedData.avatarUrl) resolvedData.avatarUrl = profile.AvatarUrl;
+      } catch {}
+
+      try {
+        const readOnlyData = await this.post("GetUserReadOnlyData", {
+          PlayFabId: playFabId,
+          Keys: ["RankName", "RankColor", "RankPerms", "Rankhidden"]
+        }, true);
+        if (readOnlyData && readOnlyData.Data) {
+          const d = readOnlyData.Data;
+          const rName = d.RankName ? d.RankName.Value : "";
+          const rColor = d.RankColor ? d.RankColor.Value : "";
+          const rPermsRaw = d.RankPerms ? d.RankPerms.Value : "";
+          const rHidden = d.Rankhidden ? (d.Rankhidden.Value === "true" || d.Rankhidden.Value === true) : false;
+          let perms = {};
+          if (rPermsRaw) {
+            try { perms = JSON.parse(rPermsRaw); } catch {}
+          }
+          if (rName) {
+            resolvedData.appRank = {
+              name: rName,
+              color: rColor || "#ffffff",
+              perms: perms,
+              hidden: rHidden
+            };
+          }
+        }
+      } catch {}
+    }
 
     this.userCache.set(playFabId, resolvedData);
     return resolvedData;
@@ -543,11 +547,22 @@ class PlayFabService {
           tags: tags
         };
 
-        this.userCache.set(friendData.playFabId, {
-          displayName: friendData.displayName,
-          avatarUrl: friendData.avatarUrl,
-          username: friendData.username
-        });
+        const existingCached = this.userCache.get(friendData.playFabId);
+        if (existingCached && existingCached.isFullProfile) {
+          if (friendData.displayName) existingCached.displayName = friendData.displayName;
+          if (friendData.avatarUrl) existingCached.avatarUrl = friendData.avatarUrl;
+          if (friendData.username && !existingCached.username) existingCached.username = friendData.username;
+        } else {
+          this.userCache.set(friendData.playFabId, {
+            displayName: friendData.displayName,
+            avatarUrl: friendData.avatarUrl,
+            username: friendData.username,
+            presence: "offline",
+            statusMessage: "",
+            appRank: null,
+            isFullProfile: false
+          });
+        }
 
         if (tags.includes("request_received")) {
           pendingIncoming.push({
@@ -747,27 +762,43 @@ class PlayFabService {
       reader.readAsDataURL(file);
     });
 
-    const res = await this.executeScript("uploadFile", {
-      fileName: file.name,
-      fileType: file.type || "application/octet-stream",
-      fileSize: file.size,
-      fileData: base64Data
-    });
+    const chunkSize = 35000;
+    const totalChunks = Math.ceil(base64Data.length / chunkSize);
+    const uploadId = "upl_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 
-    if (!res || !res.success) {
-      throw new Error(res?.error || "Failed to upload file");
-    }
-
-    if (res.fileId) {
-      this.fileCache.set(res.fileId, {
+    let finalRes = null;
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = base64Data.slice(i * chunkSize, (i + 1) * chunkSize);
+      const payload = {
+        uploadId: uploadId,
+        chunkIndex: i,
+        totalChunks: totalChunks,
         fileName: file.name,
         fileType: file.type || "application/octet-stream",
         fileSize: file.size,
-        data: base64Data
-      });
+        chunkData: chunk
+      };
+      const res = await this.executeScript("uploadFileChunk", payload, { silent: true });
+      if (!res || !res.success) {
+        throw new Error(res?.error || `Upload failed on chunk ${i + 1}/${totalChunks}`);
+      }
+      if (i === totalChunks - 1) {
+        finalRes = res;
+      }
     }
 
-    return res;
+    if (!finalRes || !finalRes.fileId) {
+      throw new Error("Failed to finalize file upload");
+    }
+
+    this.fileCache.set(finalRes.fileId, {
+      fileName: file.name,
+      fileType: file.type || "application/octet-stream",
+      fileSize: file.size,
+      data: base64Data
+    });
+
+    return finalRes;
   }
 
   async downloadFile(fileId) {

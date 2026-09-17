@@ -200,6 +200,23 @@ export class MessageInput {
       this.handleSend();
     });
 
+    this.textarea.addEventListener('paste', async (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type && item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            await this.uploadAndSendFile(file);
+            break;
+          }
+        }
+      }
+    });
+
     this.attachBtn?.addEventListener('click', () => {
       if (!playFabService.isAuthenticated()) {
         this.callbacks.onRequireAuth();
@@ -212,35 +229,7 @@ export class MessageInput {
     this.fileInput?.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
-
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File size exceeds 10MB limit.");
-        return;
-      }
-
-      if (this.uploadIndicator) {
-        this.uploadIndicator.style.display = 'flex';
-        if (this.uploadStatusText) {
-          this.uploadStatusText.textContent = `Uploading ${file.name}...`;
-        }
-      }
-      this.sendBtn.disabled = true;
-
-      try {
-        const uploadRes = await playFabService.uploadFile(file);
-        if (uploadRes && uploadRes.success && uploadRes.fileId) {
-          const fileMsg = `pulse://file/${uploadRes.fileId}?name=${encodeURIComponent(uploadRes.fileName)}&size=${uploadRes.fileSize}&type=${encodeURIComponent(uploadRes.fileType)}`;
-          await this.sendDirectMessage(fileMsg);
-        }
-      } catch (err) {
-        alert(err?.message || "Failed to upload file");
-      } finally {
-        if (this.uploadIndicator) {
-          this.uploadIndicator.style.display = 'none';
-        }
-        this.sendBtn.disabled = false;
-        this.fileInput.value = '';
-      }
+      await this.uploadAndSendFile(file);
     });
 
     this.cancelReplyBtn?.addEventListener('click', () => {
@@ -589,6 +578,44 @@ export class MessageInput {
     } catch {} finally {
       this.isSending = false;
       this.sendBtn.disabled = false;
+    }
+  }
+
+  async uploadAndSendFile(file) {
+    if (!this.canUserSend() || !file) return;
+
+    if (!playFabService.isAuthenticated()) {
+      this.callbacks.onRequireAuth();
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size exceeds 10MB limit.");
+      return;
+    }
+
+    if (this.uploadIndicator) {
+      this.uploadIndicator.style.display = 'flex';
+      if (this.uploadStatusText) {
+        this.uploadStatusText.textContent = `Uploading ${file.name || 'image.png'}...`;
+      }
+    }
+    this.sendBtn.disabled = true;
+
+    try {
+      const uploadRes = await playFabService.uploadFile(file);
+      if (uploadRes && uploadRes.success && uploadRes.fileId) {
+        const fileMsg = `pulse://file/${uploadRes.fileId}?name=${encodeURIComponent(uploadRes.fileName || file.name || 'image.png')}&size=${uploadRes.fileSize || file.size}&type=${encodeURIComponent(uploadRes.fileType || file.type || 'image/png')}`;
+        await this.sendDirectMessage(fileMsg);
+      }
+    } catch (err) {
+      alert(err?.message || "Failed to upload file");
+    } finally {
+      if (this.uploadIndicator) {
+        this.uploadIndicator.style.display = 'none';
+      }
+      this.sendBtn.disabled = false;
+      if (this.fileInput) this.fileInput.value = '';
     }
   }
 }

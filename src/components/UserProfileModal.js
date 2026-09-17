@@ -21,7 +21,7 @@ export class UserProfileModal {
     this.render();
 
     try {
-      const p = await playFabService.resolveUser(userId);
+      const p = await playFabService.resolveUser(userId, true);
       this.profile = p;
     } catch {
       this.profile = { displayName: "User", avatarUrl: "" };

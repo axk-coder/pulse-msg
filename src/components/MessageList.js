@@ -127,6 +127,7 @@ export class MessageList {
     while ((fileMatch = fileRegex.exec(text)) !== null) {
       const fId = fileMatch[1];
       const queryStr = fileMatch[2] || '';
+      escaped = escaped.replace(this.escapeHtml(fileMatch[0]), '').trim();
       if (!handledUrls.has(fId)) {
         handledUrls.add(fId);
         let fName = 'File Attachment';
@@ -223,6 +224,11 @@ export class MessageList {
       const fullUrl = ytMatch[0];
       if (!handledUrls.has(fullUrl)) {
         handledUrls.add(fullUrl);
+        if (text.trim() === fullUrl.trim()) {
+          escaped = '';
+        } else {
+          escaped = escaped.replace(this.escapeHtml(fullUrl), '').trim();
+        }
         embeds.push(`
           <div class="discord-video-embed">
             <iframe 
@@ -237,12 +243,17 @@ export class MessageList {
       }
     }
 
-    const mediaRegex = /https?:\/\/[^\s]+?\.(?:gif|png|jpg|jpeg|webp|svg)(?:\?[^\s]*)?|https?:\/\/media\.tenor\.com\/[^\s]+|https?:\/\/media[0-9]*\.giphy\.com\/[^\s]+/gi;
+    const mediaRegex = /https?:\/\/[^\s<>"'`]+?\.(?:gif|png|jpg|jpeg|webp|svg)(?:\?[^\s<>"'`]*)?|https?:\/\/media\.tenor\.com\/[^\s<>"'`]+|https?:\/\/c\.tenor\.com\/[^\s<>"'`]+|https?:\/\/media[0-9]*\.giphy\.com\/[^\s<>"'`]+/gi;
     let mediaMatch;
     while ((mediaMatch = mediaRegex.exec(text)) !== null) {
       const mUrl = mediaMatch[0];
       if (!handledUrls.has(mUrl)) {
         handledUrls.add(mUrl);
+        if (text.trim() === mUrl.trim()) {
+          escaped = '';
+        } else {
+          escaped = escaped.replace(this.escapeHtml(mUrl), '').trim();
+        }
         embeds.push(`
           <div class="discord-media-embed">
             <a href="${this.escapeHtml(mUrl)}" target="_blank" rel="noopener noreferrer">
