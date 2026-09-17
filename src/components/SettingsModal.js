@@ -9,6 +9,8 @@ export class SettingsModal {
     this.isOpen = false;
     this.tab = 'profile';
     this.currentTheme = localStorage.getItem('pulse_theme') || 'onyx';
+    this.panicKey = localStorage.getItem('pulse_panic_key') || '';
+    this.panicUrl = localStorage.getItem('pulse_panic_url') || 'https://www.google.com';
     this.isLoading = false;
     this.message = null;
     this.error = null;
@@ -237,6 +239,42 @@ export class SettingsModal {
                     `).join('')}
                   </div>
                 </div>
+
+                <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px; font-weight: 600; color: #ffffff;">Quick Redirect Keybind</span>
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Navigation</span>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+                    <div class="form-group" style="margin: 0;">
+                      <label class="form-label" for="set-panic-key" style="font-size: 11px;">Trigger Key</label>
+                      <input
+                        type="text"
+                        id="set-panic-key"
+                        class="form-input"
+                        placeholder="e.g. Escape or ~"
+                        value="${this.escapeHtml(this.panicKey || '')}"
+                        maxlength="15"
+                        style="font-size: 12px; font-family: var(--font-mono);"
+                      />
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                      <label class="form-label" for="set-panic-url" style="font-size: 11px;">Target URL</label>
+                      <input
+                        type="text"
+                        id="set-panic-url"
+                        class="form-input"
+                        placeholder="https://www.google.com"
+                        value="${this.escapeHtml(this.panicUrl || 'https://www.google.com')}"
+                        maxlength="300"
+                        style="font-size: 12px; font-family: var(--font-mono);"
+                      />
+                    </div>
+                  </div>
+                  <button type="button" class="form-btn-submit" id="set-save-panic-btn" style="margin: 0; padding: 8px; font-size: 12px;">
+                    Save Keybind Settings
+                  </button>
+                </div>
               </div>
             ` : ''}
 
@@ -428,6 +466,23 @@ export class SettingsModal {
           this.render();
         }
       });
+    });
+
+    const savePanicBtn = this.container.querySelector('#set-save-panic-btn');
+    savePanicBtn?.addEventListener('click', () => {
+      const keyInput = this.container.querySelector('#set-panic-key');
+      const urlInput = this.container.querySelector('#set-panic-url');
+      const keyVal = keyInput ? keyInput.value.trim() : '';
+      let urlVal = urlInput ? urlInput.value.trim() : 'https://www.google.com';
+      if (urlVal && !urlVal.startsWith('http://') && !urlVal.startsWith('https://')) {
+        urlVal = 'https://' + urlVal;
+      }
+      this.panicKey = keyVal;
+      this.panicUrl = urlVal;
+      localStorage.setItem('pulse_panic_key', keyVal);
+      localStorage.setItem('pulse_panic_url', urlVal);
+      this.message = keyVal ? `Redirect keybind set to "${keyVal}"` : 'Redirect keybind disabled';
+      this.render();
     });
 
     const openPrivacyBtn = this.container.querySelector('#set-open-privacy-btn');

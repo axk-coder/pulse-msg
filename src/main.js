@@ -305,6 +305,21 @@ class PulseApp {
   }
 }
 
+window.addEventListener('keydown', (e) => {
+  const panicKey = localStorage.getItem('pulse_panic_key');
+  if (!panicKey) return;
+  const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+  if (isInput && panicKey.length === 1 && panicKey !== '`' && panicKey !== '~' && panicKey !== 'Escape') {
+    return;
+  }
+  if (e.key === panicKey || e.code === panicKey || (panicKey === 'Escape' && e.key === 'Escape')) {
+    e.preventDefault();
+    e.stopPropagation();
+    const targetUrl = localStorage.getItem('pulse_panic_url') || 'https://www.google.com';
+    window.location.replace(targetUrl);
+  }
+}, true);
+
 window.addEventListener('DOMContentLoaded', () => {
   new PulseApp();
 });
