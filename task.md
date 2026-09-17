@@ -131,11 +131,8 @@
   - Added `Ctrl + K` / `Cmd + K` global hotkey to instantly focus the search bar.
 - [x] **Favicon Asset & Inline SVG Configuration**:
   - Added embedded data URI SVG favicon in `index.html` and static fallback files `public/favicon.svg` and `public/favicon.ico` to eliminate browser 404 resource errors.
-- [x] **Video and Audio Embeds & Interactive Player Support**:
-  - Expanded `MessageList.js` to render responsive HTML5 `<video>` players for video files (`.mp4`, `.webm`, `.mov`, `.mkv`) and direct web video URLs.
-  - Added HTML5 `<audio>` player and 1-click `▶ Play Sound` / `▶ Play` button for audio files (`.mp3`, `.wav`, `.ogg`, `.m4a`, `.aac`, `.flac`) and web audio streams.
-  - Added specific SVG icons for video and audio attachments.
-- [x] **Global Chat Button Navigation Fix**:
-  - Standardized `#rail-global-btn` click handler in `Sidebar.js` to invoke `appState.setGlobalChat()`.
-  - Added `setActiveGlobal()` alias in `src/services/state.js` ensuring compatibility with any legacy navigation calls.
+- [x] **Version 5.6 Release & 0.1 Auto-Increment Policy**:
+  - Incremented project release version to `5.6.0` in `package.json`.
+  - Updated all visible version tags to `5.6` across Sidebar footer links, Settings Modal header, Legal Modal header, Credits Modal header, and Shortcuts Modal header.
+  - Enforced version increment of 0.1 for subsequent updates.
 
