@@ -1,6 +1,12 @@
 # Active Task Tracker
 
 ## Completed Tasks
+- [x] **Backend Chat Authorization & Access Lockdown**:
+  - Implemented `verifyChatAccess` in CloudScript for all message operations (`getMessages`, `getMessagesSince`, `getLastNumberMsgs`, `sendMessage`, `editMessage`, `deleteMessage`, `getGroupMeta`).
+  - Server Access: Non-members and banned users cannot view or send messages in server channels.
+  - Channel Overrides: `view_channel` and `send_messages` overrides and role permissions are strictly validated on the backend.
+  - 1-on-1 DMs: Non-participants cannot view or send messages in private DM streams.
+  - Group DMs: Only confirmed members and the group owner can view or send messages.
 - [x] **PlayFab Native Friends Migration**:
   - Replaced CloudScript friend calls with direct PlayFab Client APIs (`GetFriendsList`, `AddFriend`, `RemoveFriend`).
   - Removed CloudScript friend handlers (`handlers.sendFriendRequest`, `handlers.getFriendRequests`, `handlers.respondFriendRequest`, `handlers.removeFriend`) to conserve rate limits.
