@@ -14,10 +14,11 @@ export class MessageList {
     this.addFriendInput = '';
     this.statusMessage = null;
     this.pendingRequests = [];
+    this.lastSnapshot = '';
     this.render();
 
     this.unsubscribe = appState.subscribe((state, key) => {
-      if (key === 'messages' || key === 'navigation' || key === 'channel' || key === 'search' || key === 'profileCache' || key === 'friends') {
+      if (key === 'messages' || key === 'navigation' || key === 'channel' || key === 'search' || key === 'profileCache' || key === 'friends' || key === 'cloudScriptPending') {
         this.updateMessages();
       }
     });
@@ -166,6 +167,13 @@ export class MessageList {
       ? allMsgs.filter(m => m.text.toLowerCase().includes(searchQuery))
       : allMsgs;
 
+    const currentSnapshot = `${streamKey}_${filteredMsgs.length}_${filteredMsgs.map(m => m.id + (m.isEdited ? 'e' : '') + m.text).join('|')}_${searchQuery}_${state.isPendingCloudScript ? '1' : '0'}`;
+    if (this.lastSnapshot === currentSnapshot) {
+      if (this.shouldAutoScroll) this.scrollToBottom(false);
+      return;
+    }
+    this.lastSnapshot = currentSnapshot;
+
     for (const msg of filteredMsgs) {
       if (msg.senderId) {
         if (playFabService.userCache.has(msg.senderId)) {
@@ -210,11 +218,32 @@ export class MessageList {
     `;
 
     if (filteredMsgs.length === 0) {
-      html += `
-        <div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 13px;">
-          No messages here yet.
-        </div>
-      `;
+      if (state.isPendingCloudScript) {
+        html += `
+          <div class="message-loading-skeleton-list">
+            <div class="message-skeleton-card">
+              <div class="skeleton-avatar"></div>
+              <div class="skeleton-lines">
+                <div class="skeleton-line" style="width: 120px;"></div>
+                <div class="skeleton-line" style="width: 75%;"></div>
+              </div>
+            </div>
+            <div class="message-skeleton-card">
+              <div class="skeleton-avatar"></div>
+              <div class="skeleton-lines">
+                <div class="skeleton-line" style="width: 90px;"></div>
+                <div class="skeleton-line" style="width: 50%;"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 13px;">
+            No messages here yet.
+          </div>
+        `;
+      }
     } else {
       let lastDate = null;
 

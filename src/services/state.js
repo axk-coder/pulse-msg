@@ -1,3 +1,5 @@
+import { messageCache } from './messageCache.js';
+
 class StateStore {
   constructor() {
     this.state = {
@@ -12,6 +14,7 @@ class StateStore {
       userProfiles: {},
       messages: {},
       unreadCounts: {},
+      isPendingCloudScript: false,
       network: {
         mode: "HTTPS REST Polling",
         intervalSeconds: 1.0,
@@ -39,6 +42,13 @@ class StateStore {
 
   notify(key) {
     this.listeners.forEach((fn) => fn(this.state, key));
+  }
+
+  setCloudScriptPending(isPending) {
+    if (this.state.isPendingCloudScript !== !!isPending) {
+      this.state.isPendingCloudScript = !!isPending;
+      this.notify("cloudScriptPending");
+    }
   }
 
   getStreamKey() {
@@ -72,6 +82,17 @@ class StateStore {
       };
     }
     return { isGlobal: true };
+  }
+
+  hydrateStreamMessages(streamKey) {
+    if (!streamKey || streamKey === "none") return;
+    if (!this.state.messages[streamKey] || this.state.messages[streamKey].length === 0) {
+      const cached = messageCache.getCachedMessages(streamKey);
+      if (cached && cached.length > 0) {
+        this.state.messages[streamKey] = cached;
+        this.notify("messages");
+      }
+    }
   }
 
   setServers(servers) {
@@ -109,6 +130,7 @@ class StateStore {
         this.state.activeServerId = data.activeServerId;
         this.state.activeChannelId = data.activeChannelId || "chat";
         this.state.activeDM = null;
+        this.hydrateStreamMessages(this.getStreamKey());
         this.notify("navigation");
         return true;
       }
@@ -122,6 +144,7 @@ class StateStore {
     this.state.activeServer = null;
     this.state.activeChannelId = null;
     this.state.activeDM = null;
+    this.hydrateStreamMessages(this.getStreamKey());
     this.persistActiveContext();
     this.notify("navigation");
   }
@@ -138,12 +161,14 @@ class StateStore {
       this.state.activeChannelId = null;
     }
 
+    this.hydrateStreamMessages(this.getStreamKey());
     this.persistActiveContext();
     this.notify("navigation");
   }
 
   setActiveChannel(channelId) {
     this.state.activeChannelId = channelId;
+    this.hydrateStreamMessages(this.getStreamKey());
     this.persistActiveContext();
     this.notify("channel");
   }
@@ -154,6 +179,7 @@ class StateStore {
     this.state.activeServerId = null;
     this.state.activeServer = null;
     this.state.activeChannelId = null;
+    this.hydrateStreamMessages(this.getStreamKey());
     this.persistActiveContext();
     this.notify("navigation");
   }
@@ -193,6 +219,7 @@ class StateStore {
         senderId: String(m.senderId || ""),
         text: String(m.text || "").slice(0, 2000),
         timestamp: m.timestamp || new Date().toISOString(),
+        isEdited: !!m.isEdited,
         replyTo: (m.replyTo && typeof m.replyTo === 'object') ? {
           id: String(m.replyTo.id || ""),
           senderId: String(m.replyTo.senderId || ""),
@@ -201,6 +228,7 @@ class StateStore {
       }));
 
     this.state.messages[streamKey] = sanitized;
+    messageCache.setCachedMessages(streamKey, sanitized);
     this.notify("messages");
   }
 
@@ -213,6 +241,7 @@ class StateStore {
       senderId: String(message.senderId || ""),
       text: String(message.text || "").slice(0, 2000),
       timestamp: message.timestamp || new Date().toISOString(),
+      isEdited: !!message.isEdited,
       replyTo: (message.replyTo && typeof message.replyTo === 'object') ? {
         id: String(message.replyTo.id || ""),
         senderId: String(message.replyTo.senderId || ""),
@@ -223,6 +252,7 @@ class StateStore {
     const exists = this.state.messages[streamKey].some((m) => m.id === cleanMsg.id);
     if (!exists) {
       this.state.messages[streamKey].push(cleanMsg);
+      messageCache.setCachedMessages(streamKey, this.state.messages[streamKey]);
       this.notify("messages");
     }
   }

@@ -1585,3 +1585,74 @@ html, body {
   color: #ffffff;
 }
 
+.cloud-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+  z-index: 10000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cloud-loading-bar.active {
+  background: #222222;
+}
+
+.cloud-loading-bar.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 35%;
+  background: #ffffff;
+  animation: cloud-pulse-bar 0.8s infinite linear;
+}
+
+@keyframes cloud-pulse-bar {
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.message-loading-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.message-skeleton-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.skeleton-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: #1c1c1c;
+  flex-shrink: 0;
+}
+
+.skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 4px;
+  background: #1a1a1a;
+}
+
+

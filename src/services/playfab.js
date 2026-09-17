@@ -1,3 +1,5 @@
+import { appState } from './state.js';
+
 export const PLAYFAB_TITLE_ID = "133616";
 const PLAYFAB_API_BASE = `https://${PLAYFAB_TITLE_ID}.playfabapi.com/Client`;
 
@@ -8,6 +10,7 @@ class PlayFabService {
     this.currentUser = null;
     this.lastSendTimestamp = 0;
     this.userCache = new Map();
+    this.pendingRequests = 0;
 
     const storedUser = localStorage.getItem("pulse_user");
     if (storedUser) {
@@ -485,16 +488,25 @@ class PlayFabService {
 
   async executeScript(functionName, functionParameter = {}) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
-    const payload = {
-      FunctionName: functionName,
-      FunctionParameter: functionParameter,
-      GeneratePlayStreamEvent: false
-    };
-    const res = await this.post("ExecuteCloudScript", payload, true);
-    if (res && res.FunctionResult) {
-      return res.FunctionResult;
+    this.pendingRequests++;
+    appState.setCloudScriptPending(true);
+    try {
+      const payload = {
+        FunctionName: functionName,
+        FunctionParameter: functionParameter,
+        GeneratePlayStreamEvent: false
+      };
+      const res = await this.post("ExecuteCloudScript", payload, true);
+      if (res && res.FunctionResult) {
+        return res.FunctionResult;
+      }
+      return { success: false };
+    } finally {
+      this.pendingRequests = Math.max(0, this.pendingRequests - 1);
+      if (this.pendingRequests === 0) {
+        appState.setCloudScriptPending(false);
+      }
     }
-    return { success: false };
   }
 
   async getMessages(target) {

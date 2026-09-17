@@ -25,6 +25,7 @@ class PulseApp {
 
   async init() {
     this.root.innerHTML = `
+      <div class="cloud-loading-bar" id="cloud-loading-bar"></div>
       <div class="pulse-layout" id="pulse-main-layout" style="display: none;">
         <aside id="sidebar-mount"></aside>
         <main class="chat-main" id="chat-mount">
@@ -208,7 +209,15 @@ class PulseApp {
       }
     }
 
+    const cloudBar = document.getElementById('cloud-loading-bar');
     appState.subscribe((state, key) => {
+      if (key === 'cloudScriptPending' && cloudBar) {
+        if (state.isPendingCloudScript) {
+          cloudBar.classList.add('active');
+        } else {
+          cloudBar.classList.remove('active');
+        }
+      }
       if ((key === 'navigation' || key === 'channel') && playFabService.isAuthenticated()) {
         pollingEngine.pollNow();
       }

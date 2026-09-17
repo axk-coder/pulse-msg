@@ -83,6 +83,14 @@
   - Added dynamic starter channels customizer with on-the-fly add and remove pill controls.
   - Added 1-click clipboard paste parsing for invite links/IDs in the Join Server flow.
   - Fully styled in grayscale palette with fast interaction states in `src/styles/main.css`.
+- [x] **Message Cookie Caching & CloudScript Pending Response Loading**:
+  - Implemented `src/services/messageCache.js` for instant cookie and local storage caching of recent messages per stream.
+  - Hydrated stream messages on channel/DM switch and reload with 0 network delay.
+  - Added pending request counter in `playfabService.executeScript` notifying `appState`.
+  - Added top grayscale indeterminate loading bar (`.cloud-loading-bar`) during active backend CloudScript requests.
+  - Added stream skeleton loading placeholder in `MessageList.js` when empty stream is loading from CloudScript.
+  - Added snapshot memoization in `MessageList.js` to eliminate redundant DOM re-rendering.
+
 
 
 
