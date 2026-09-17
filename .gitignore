@@ -5,4 +5,4 @@ map.txt
 .DS_Store
 backend/
 backend/**
-
+deploy.sh
