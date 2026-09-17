@@ -1983,3 +1983,93 @@ html, body {
   font-size: 12px;
   color: #f0f0f0;
 }
+
+.discord-file-embed {
+  margin-top: 6px;
+  max-width: 440px;
+  background: #181818;
+  border: 1px solid #2e2e2e;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.discord-file-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.discord-file-icon {
+  width: 40px;
+  height: 40px;
+  background: #242424;
+  border: 1px solid #363636;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.discord-file-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.discord-file-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discord-file-size {
+  font-size: 11px;
+  color: #888888;
+  margin-top: 2px;
+}
+
+.btn-download-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #0a0a0a;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-download-file:hover {
+  background: #e0e0e0;
+}
+
+.btn-download-file:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin-icon {
+  animation: spin-icon-anim 1s linear infinite;
+}
+
+@keyframes spin-icon-anim {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

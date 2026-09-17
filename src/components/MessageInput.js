@@ -81,7 +81,15 @@ export class MessageInput {
             maxlength="2000"
           ></textarea>
 
+          <input type="file" id="chat-file-input" style="display: none;" />
+
           <div class="input-actions">
+            <button class="icon-btn" id="attach-file-btn" type="button" title="Upload File (<10MB)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+              </svg>
+            </button>
+
             <button class="icon-btn" id="gif-toggle-btn" type="button" title="GIFs" style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; padding: 4px 6px; border: 1px solid var(--border-subtle); border-radius: 4px;">
               GIF
             </button>
@@ -102,6 +110,20 @@ export class MessageInput {
               </svg>
             </button>
           </div>
+        </div>
+
+        <div id="upload-status-indicator" style="display: none; align-items: center; gap: 8px; font-size: 12px; color: #ffffff; padding: 6px 10px; background: #1f1f1f; border-radius: 4px; margin-top: 4px; border: 1px solid #333333;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="spin-icon">
+            <line x1="12" y1="2" x2="12" y2="6"></line>
+            <line x1="12" y1="18" x2="12" y2="22"></line>
+            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+            <line x1="2" y1="12" x2="6" y2="12"></line>
+            <line x1="18" y1="12" x2="22" y2="12"></line>
+            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+          </svg>
+          <span id="upload-status-text">Uploading file...</span>
         </div>
 
         <div class="emoji-popover" id="emoji-popover" style="display: none;">
@@ -134,6 +156,10 @@ export class MessageInput {
 
     this.textarea = this.container.querySelector('#chat-input-textarea');
     this.sendBtn = this.container.querySelector('#chat-send-btn');
+    this.attachBtn = this.container.querySelector('#attach-file-btn');
+    this.fileInput = this.container.querySelector('#chat-file-input');
+    this.uploadIndicator = this.container.querySelector('#upload-status-indicator');
+    this.uploadStatusText = this.container.querySelector('#upload-status-text');
     this.emojiBtn = this.container.querySelector('#emoji-toggle-btn');
     this.emojiPopover = this.container.querySelector('#emoji-popover');
     this.emojiGrid = this.container.querySelector('#emoji-grid');
@@ -172,6 +198,49 @@ export class MessageInput {
 
     this.sendBtn.addEventListener('click', () => {
       this.handleSend();
+    });
+
+    this.attachBtn?.addEventListener('click', () => {
+      if (!playFabService.isAuthenticated()) {
+        this.callbacks.onRequireAuth();
+        return;
+      }
+      this.fileInput.value = '';
+      this.fileInput.click();
+    });
+
+    this.fileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File size exceeds 10MB limit.");
+        return;
+      }
+
+      if (this.uploadIndicator) {
+        this.uploadIndicator.style.display = 'flex';
+        if (this.uploadStatusText) {
+          this.uploadStatusText.textContent = `Uploading ${file.name}...`;
+        }
+      }
+      this.sendBtn.disabled = true;
+
+      try {
+        const uploadRes = await playFabService.uploadFile(file);
+        if (uploadRes && uploadRes.success && uploadRes.fileId) {
+          const fileMsg = `pulse://file/${uploadRes.fileId}?name=${encodeURIComponent(uploadRes.fileName)}&size=${uploadRes.fileSize}&type=${encodeURIComponent(uploadRes.fileType)}`;
+          await this.sendDirectMessage(fileMsg);
+        }
+      } catch (err) {
+        alert(err?.message || "Failed to upload file");
+      } finally {
+        if (this.uploadIndicator) {
+          this.uploadIndicator.style.display = 'none';
+        }
+        this.sendBtn.disabled = false;
+        this.fileInput.value = '';
+      }
     });
 
     this.cancelReplyBtn?.addEventListener('click', () => {

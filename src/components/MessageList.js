@@ -120,8 +120,64 @@ export class MessageList {
     escaped = escaped.replace(/~~([^~]+)~~/g, '<del>$1</del>');
     escaped = escaped.replace(/(@[a-zA-Z0-9_-]+)/g, '<span class="message-mention" style="background: rgba(255, 255, 255, 0.14); color: #ffffff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">$1</span>');
 
-    const embeds = [];
-    const handledUrls = new Set();
+    const fileRegex = /pulse:\/\/file\/(file_[0-9]+_[0-9]+)(?:\?([^\s<>"'`]+))?/gi;
+    let fileMatch;
+    while ((fileMatch = fileRegex.exec(text)) !== null) {
+      const fId = fileMatch[1];
+      const queryStr = fileMatch[2] || '';
+      if (!handledUrls.has(fId)) {
+        handledUrls.add(fId);
+        let fName = 'File Attachment';
+        let fSize = 0;
+        let fType = 'application/octet-stream';
+        if (queryStr) {
+          try {
+            const params = new URLSearchParams(queryStr);
+            if (params.get('name')) fName = decodeURIComponent(params.get('name'));
+            if (params.get('size')) fSize = parseInt(params.get('size'), 10) || 0;
+            if (params.get('type')) fType = decodeURIComponent(params.get('type'));
+          } catch {}
+        }
+
+        let sizeFormatted = '';
+        if (fSize > 0) {
+          if (fSize >= 1024 * 1024) sizeFormatted = (fSize / (1024 * 1024)).toFixed(1) + ' MB';
+          else sizeFormatted = Math.max(1, Math.round(fSize / 1024)) + ' KB';
+        }
+
+        const isImage = fType.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fName);
+
+        embeds.push(`
+          <div class="discord-file-embed" data-file-id="${this.escapeHtml(fId)}">
+            <div class="discord-file-content">
+              <div class="discord-file-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                  <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+              </div>
+              <div class="discord-file-info">
+                <span class="discord-file-name" title="${this.escapeHtml(fName)}">${this.escapeHtml(fName)}</span>
+                ${sizeFormatted ? `<span class="discord-file-size">${sizeFormatted}</span>` : ''}
+              </div>
+              <button type="button" class="btn-download-file" data-file-id="${this.escapeHtml(fId)}" data-file-name="${this.escapeHtml(fName)}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download</span>
+              </button>
+            </div>
+            ${isImage ? `
+              <div class="file-image-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; max-height: 280px; overflow: hidden; border-radius: 4px; display: none;">
+                <img src="" alt="${this.escapeHtml(fName)}" style="max-width: 100%; max-height: 280px; object-fit: contain; display: block;" />
+              </div>
+            ` : ''}
+          </div>
+        `);
+      }
+    }
 
     const inviteRegex = /(?:pulse:\/\/invite\/|https?:\/\/[^\s]+\/invite\/|discord\.gg\/|\b)(srv_[0-9]+_[0-9]+)\b/gi;
     let inviteMatch;
@@ -619,6 +675,51 @@ export class MessageList {
           }, 2000);
         }
       });
+    });
+
+    this.streamEl.querySelectorAll('.btn-download-file').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const fileId = btn.getAttribute('data-file-id');
+        const fileName = btn.getAttribute('data-file-name') || 'download';
+        if (!fileId) return;
+
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span>Downloading...</span>`;
+
+        try {
+          const fileObj = await playFabService.downloadFile(fileId);
+          if (fileObj && fileObj.data) {
+            const link = document.createElement('a');
+            link.href = fileObj.data;
+            link.download = fileObj.fileName || fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        } catch (err) {
+          alert(err?.message || "Failed to download file");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+      });
+    });
+
+    this.streamEl.querySelectorAll('.file-image-preview').forEach(previewEl => {
+      const fileId = previewEl.getAttribute('data-file-id');
+      if (fileId && previewEl.style.display === 'none') {
+        playFabService.downloadFile(fileId).then(fileObj => {
+          if (fileObj && fileObj.data) {
+            const img = previewEl.querySelector('img');
+            if (img) {
+              img.src = fileObj.data;
+              previewEl.style.display = 'block';
+            }
+          }
+        }).catch(() => {});
+      }
     });
 
     if (this.shouldAutoScroll) {

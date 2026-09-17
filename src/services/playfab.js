@@ -644,6 +644,48 @@ class PlayFabService {
   async getGroupMeta(dmId, silent = true) {
     return await this.executeScript("getGroupMeta", { dmId }, { silent });
   }
+
+  async uploadFile(file) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    if (!file) throw new Error("No file selected");
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error("File size exceeds 10MB limit");
+    }
+
+    const base64Data = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const res = await this.executeScript("uploadFile", {
+      fileName: file.name,
+      fileType: file.type || "application/octet-stream",
+      fileSize: file.size,
+      fileData: base64Data
+    });
+
+    if (!res || !res.success) {
+      throw new Error(res?.error || "Failed to upload file");
+    }
+
+    return res;
+  }
+
+  async downloadFile(fileId) {
+    if (!this.sessionTicket) throw new Error("Not authenticated");
+    const cleanId = String(fileId || "").trim();
+    if (!cleanId) throw new Error("File ID required");
+
+    const res = await this.executeScript("downloadFile", { fileId: cleanId });
+    if (!res || !res.success || !res.file) {
+      throw new Error(res?.error || "File could not be found");
+    }
+
+    return res.file;
+  }
 }
 
 export const playFabService = new PlayFabService();
+
