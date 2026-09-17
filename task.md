@@ -119,9 +119,9 @@
 - [x] **Settings Modal Multi-Tab Redesign**:
   - Redesigned `SettingsModal.js` with structured tabs: Profile (Presence, Status message, Profile picture URL, Display name, Live preview), Account (Account overview, Email management, Session sign out), Preferences (Sound & Audio toggle, Grayscale theme status), and Policies.
   - Updated `LegalModal.js` Privacy Policy and Terms of Service to explicitly state that the application is not made, designed, or intended to bypass network blocks or firewalls.
-- [x] **Version 5.0 Release**:
-  - Incremented project release version to `5.0.0` in `package.json`.
-  - Added visible `5.0` version badges across Sidebar footer links, Settings Modal header, Legal Modal header, and Credits Modal header.
+- [x] **Version 5.5 Release**:
+  - Incremented project release version to `5.5.0` in `package.json`.
+  - Added visible `5.5` version badges across Sidebar footer links, Settings Modal header, Legal Modal header, Credits Modal header, and Shortcuts Modal header.
 - [x] **Comprehensive Unicode Emoji Suite & In-Popover Search**:
   - Expanded emoji catalog to all 9 standard Unicode categories (Smileys & Emotion, People & Gestures, Animals & Nature, Food & Drink, Activities & Gaming, Travel & Places, Objects & Tech, Symbols & Hearts, Flags).
   - Added real-time search input inside the emoji picker popover.
