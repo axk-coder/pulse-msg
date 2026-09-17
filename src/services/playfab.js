@@ -699,7 +699,10 @@ class PlayFabService {
 
   async getUserServers(silent = true) {
     const res = await this.executeScript("getUserServers", {}, { silent });
-    return res.servers || [];
+    if (res && res.success && Array.isArray(res.servers)) {
+      return res.servers;
+    }
+    return appState.getState().servers || [];
   }
 
   async createServer(name, iconUrl = "") {
@@ -720,7 +723,10 @@ class PlayFabService {
 
   async getUserDMs(silent = true) {
     const res = await this.executeScript("getUserDMs", {}, { silent });
-    return res.dms || [];
+    if (res && res.success && Array.isArray(res.dms)) {
+      return res.dms;
+    }
+    return appState.getState().dms || [];
   }
 
   async createOrGetDM(partnerId) {
@@ -737,6 +743,10 @@ class PlayFabService {
 
   async leaveGroupDM(dmId) {
     return await this.executeScript("leaveGroupDM", { dmId });
+  }
+
+  async removeDM(partnerId) {
+    return await this.executeScript("removeDM", { partnerId });
   }
 
   async getGroupMeta(dmId, silent = true) {
@@ -762,7 +772,7 @@ class PlayFabService {
       reader.readAsDataURL(file);
     });
 
-    const chunkSize = 35000;
+    const chunkSize = 6000;
     const totalChunks = Math.ceil(base64Data.length / chunkSize);
     const uploadId = "upl_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
 

@@ -97,10 +97,15 @@
   - Configured `playfabService.executeScript` with silent execution flag for background polling tasks.
   - Suppressed loading animations during periodic polling checks (`getMessages`, `getUserDMs`, `getUserServers`, `getFriends`, `getFriendRequests`, profile queries).
   - Preserved loading indicator for user-initiated mutations and explicit actions.
-- [x] **Channel Reordering & Positional Order Changing**:
-  - Added Move Up and Move Down buttons for each channel in `Sidebar.js` for users with `manage_channels`.
-  - Added Move Up and Move Down controls in the Server Settings Channels tab in `ServerSettingsModal.js`.
-  - Updated `backend/cloudscript.js` (`handlers.getServer`, `handlers.saveServer`) to preserve and persist custom channel order in server metadata.
+- [x] **App-Wide Rank Badges in Chat Streams**:
+  - Rendered `profile.appRank` badges alongside display names in chat message headers in `MessageList.js`.
+  - Added real-time badge updates when user profiles resolve asynchronously.
+- [x] **Hardened Server/DM Lists & Single-Request Storage**:
+  - Migrated `getUserServers` in `backend/cloudscript.js` to single-file `users/<uId>/servers.json` storage to prevent GitHub rate limits and execution timeouts.
+  - Hardened `getUserServers` and `getUserDMs` in `src/services/playfab.js` and `src/services/pollingEngine.js` to preserve existing state on transient rate limit errors.
+- [x] **Reduced File Upload Chunk Size**:
+  - Adjusted chunk size to 6,000 characters in `src/services/playfab.js` to guarantee payloads stay within PlayFab's 10KB CloudScript function argument limit.
+  - Increased CloudScript chunk limit to 2,500 chunks in `backend/cloudscript.js`.
 
 
 

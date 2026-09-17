@@ -366,6 +366,7 @@ export class MessageList {
             cards.forEach(card => {
               const nameSpan = card.querySelector('.message-sender');
               const avatarBox = card.querySelector('.message-avatar-box');
+              const metaDiv = card.querySelector('.message-meta');
               if (nameSpan) nameSpan.textContent = profile.displayName;
               if (avatarBox) {
                 avatarBox.innerHTML = `
@@ -375,6 +376,18 @@ export class MessageList {
                   }
                   <div class="presence-badge-dot dot-${profile.presence || 'online'}"></div>
                 `;
+              }
+              if (metaDiv && profile.appRank && !profile.appRank.hidden && !metaDiv.querySelector('.app-rank-badge')) {
+                const rankColor = this.escapeHtml(profile.appRank.color || '#ffffff');
+                const badgeEl = document.createElement('span');
+                badgeEl.className = 'app-rank-badge';
+                badgeEl.style.cssText = `display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 3px; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(255, 255, 255, 0.08); border: 1px solid ${rankColor}; color: ${rankColor};`;
+                badgeEl.textContent = profile.appRank.name;
+                if (nameSpan && nameSpan.nextSibling) {
+                  metaDiv.insertBefore(badgeEl, nameSpan.nextSibling);
+                } else {
+                  metaDiv.appendChild(badgeEl);
+                }
               }
             });
           });
@@ -464,6 +477,12 @@ export class MessageList {
           }
         }
 
+        let appRankBadge = '';
+        if (profile.appRank && !profile.appRank.hidden) {
+          const rankColor = this.escapeHtml(profile.appRank.color || '#ffffff');
+          appRankBadge = `<span class="app-rank-badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: 3px; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(255, 255, 255, 0.08); border: 1px solid ${rankColor}; color: ${rankColor};">${this.escapeHtml(profile.appRank.name)}</span>`;
+        }
+
         let replyPreviewHtml = '';
         if (msg.replyTo) {
           const rSenderProf = this.resolvedProfiles.get(msg.replyTo.senderId) || playFabService.userCache.get(msg.replyTo.senderId) || { displayName: "User" };
@@ -518,6 +537,7 @@ export class MessageList {
               <div class="message-body" style="flex: 1;">
                 <div class="message-meta">
                   <span class="message-sender clickable-user-name" data-user-id="${this.escapeHtml(msg.senderId)}" style="cursor: pointer;">${this.escapeHtml(profile.displayName)}</span>
+                  ${appRankBadge}
                   ${roleBadge}
                   ${isOwn ? '<span class="message-role-badge role-you">You</span>' : ''}
                   <span class="message-time">${this.formatTime(msg.timestamp)}</span>

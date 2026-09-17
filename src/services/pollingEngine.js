@@ -81,7 +81,7 @@ class PollingEngine {
       if (this.isRunning && !this.isTabHidden) {
         this.pollMeta();
       }
-    }, 6000);
+    }, 12000);
   }
 
   async pollMeta() {
@@ -92,9 +92,9 @@ class PollingEngine {
         playFabService.getFriendsList(),
         playFabService.getUserServers()
       ]);
-      appState.setDMs(dms);
-      appState.setFriends(friends);
-      appState.setServers(servers);
+      if (Array.isArray(dms)) appState.setDMs(dms);
+      if (Array.isArray(friends)) appState.setFriends(friends);
+      if (Array.isArray(servers)) appState.setServers(servers);
     } catch {}
   }
 
