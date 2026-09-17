@@ -1,6 +1,10 @@
 # Active Task Tracker
 
 ## Completed Tasks
+- [x] **PlayFab Native Friends Migration**:
+  - Replaced CloudScript friend calls with direct PlayFab Client APIs (`GetFriendsList`, `AddFriend`, `RemoveFriend`).
+  - Removed CloudScript friend handlers (`handlers.sendFriendRequest`, `handlers.getFriendRequests`, `handlers.respondFriendRequest`, `handlers.removeFriend`) to conserve rate limits.
+  - Fixed chat message stream rendering so the Friends Hub is only rendered on the DM root and channels always render messages.
 - [x] **Server Permissions Lockdown**:
   - Backend CloudScript (`handlers.saveServer`, `handlers.deleteServer`): Strictly verify `currentPlayerId === serverMeta.ownerId` or user role permissions before allowing server modifications.
   - Server profile changes (`name`, `iconUrl`, `description`) require `manage_server`.
