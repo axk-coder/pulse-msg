@@ -122,3 +122,10 @@
 - [x] **Version 5.0 Release**:
   - Incremented project release version to `5.0.0` in `package.json`.
   - Added visible `5.0` version badges across Sidebar footer links, Settings Modal header, Legal Modal header, and Credits Modal header.
+- [x] **Comprehensive Unicode Emoji Suite & In-Popover Search**:
+  - Expanded emoji catalog to all 9 standard Unicode categories (Smileys & Emotion, People & Gestures, Animals & Nature, Food & Drink, Activities & Gaming, Travel & Places, Objects & Tech, Symbols & Hearts, Flags).
+  - Added real-time search input inside the emoji picker popover.
+- [x] **Markdown Formatting Bar & Keyboard Shortcuts Modal**:
+  - Added 1-click Markdown formatting buttons (`B`, `I`, `<>`, `||`) in `MessageInput.js` that wrap selected text or insert syntax templates.
+  - Created `ShortcutsModal.js` with keybindings and markdown reference, opened via `Ctrl + /` or sidebar footer `Keys` link.
+  - Added `Ctrl + K` / `Cmd + K` global hotkey to instantly focus the search bar.

@@ -15,6 +15,7 @@ import { FriendsModal } from './components/FriendsModal.js';
 import { SettingsModal } from './components/SettingsModal.js';
 import { LegalModal } from './components/LegalModal.js';
 import { CreditsModal } from './components/CreditsModal.js';
+import { ShortcutsModal } from './components/ShortcutsModal.js';
 
 class PulseApp {
   constructor() {
@@ -56,6 +57,7 @@ class PulseApp {
     const settingsModalContainer = document.createElement('div');
     const legalModalContainer = document.createElement('div');
     const creditsModalContainer = document.createElement('div');
+    const shortcutsModalContainer = document.createElement('div');
 
     modalMount.appendChild(authModalContainer);
     modalMount.appendChild(banModalContainer);
@@ -66,9 +68,11 @@ class PulseApp {
     modalMount.appendChild(settingsModalContainer);
     modalMount.appendChild(legalModalContainer);
     modalMount.appendChild(creditsModalContainer);
+    modalMount.appendChild(shortcutsModalContainer);
 
     this.legalModal = new LegalModal(legalModalContainer);
     this.creditsModal = new CreditsModal(creditsModalContainer);
+    this.shortcutsModal = new ShortcutsModal(shortcutsModalContainer);
 
     this.banModal = new BanModal(banModalContainer, {
       onSignOut: () => {
@@ -162,7 +166,8 @@ class PulseApp {
       onOpenFriendsModal: (tab) => this.friendsModal.open(tab),
       onOpenSettingsModal: (tab) => this.settingsModal.open(tab),
       onOpenLegalModal: (tab) => this.legalModal.open(tab),
-      onOpenCreditsModal: () => this.creditsModal.open()
+      onOpenCreditsModal: () => this.creditsModal.open(),
+      onOpenShortcutsModal: () => this.shortcutsModal.open()
     });
 
     const headerMount = document.getElementById('header-mount');
@@ -306,6 +311,27 @@ class PulseApp {
 }
 
 window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const searchInput = document.getElementById('header-search-input');
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.select();
+    }
+    return;
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+    e.preventDefault();
+    const shortcutsBtn = document.getElementById('shortcuts-backdrop');
+    if (shortcutsBtn) {
+      document.getElementById('shortcuts-close-btn')?.click();
+    } else {
+      window.pulseApp?.shortcutsModal?.open();
+    }
+    return;
+  }
+
   const panicKey = localStorage.getItem('pulse_panic_key');
   if (!panicKey) return;
   const isInput = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
@@ -321,5 +347,5 @@ window.addEventListener('keydown', (e) => {
 }, true);
 
 window.addEventListener('DOMContentLoaded', () => {
-  new PulseApp();
+  window.pulseApp = new PulseApp();
 });

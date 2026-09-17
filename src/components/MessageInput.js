@@ -5,16 +5,67 @@ import { soundSynth } from '../services/soundEffects.js';
 
 const EMOJI_CATEGORIES = [
   {
+    name: "Smileys & Emotion",
     icon: "😀",
-    emojis: ["😀", "😃", "😄", "😁", "😆", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "🤓", "😎", "🥳", "🤔", "🤫", "😴"]
+    emojis: [
+      "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", "🫠", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😚", "😙", "😋", "😛", "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🫢", "🤫", "🤔", "🫡", "🤐", "🤨", "😐", "😑", "😶", "🫥", "😏", "😒", "🙄", "😬", "😮‍💨", "🤥", "😌", "😔", "😪", "🤤", "😴", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "🥵", "🥶", "🥴", "😵", "😵‍💫", "🤯", "🤠", "🥳", "🥸", "😎", "🤓", "🧐", "🫤", "😕", "😟", "🙁", "☹️", "😮", "😯", "😲", "😳", "🥺", "🥹", "😦", "😧", "😨", "😰", "😥", "😢", "😭", "😱", "😖", "😣", "😞", "😓", "😩", "😫", "🥱", "😤", "😡", "😠", "🤬", "😈", "👿", "💀", "☠️", "💩", "🤡", "👹", "👺", "👻", "👽", "👾", "🤖"
+    ]
   },
   {
+    name: "People & Gestures",
+    icon: "👋",
+    emojis: [
+      "👋", "🤚", "🖐️", "✋", "🖖", "🫱", "🫲", "🫳", "🫴", "🫷", "🫸", "👌", "🤌", "🤏", "✌️", "🤞", "🫰", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "🫵", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "🫶", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦿", "🦵", "🦶", "👂", "🦻", "👃", "🧠", "🫀", "🫁", "🦷", "🦴", "👀", "👁️", "👅", "👄", "🫦", "👶", "🧒", "👦", "👧", "🧑", "👱", "👨", "🧔", "👩", "🧓", "👴", "👵", "👨‍⚕️", "👩‍⚕️", "👨‍🎓", "👩‍🎓", "👨‍🏫", "👩‍🏫", "👨‍⚖️", "👩‍⚖️", "👨‍🌾", "👩‍🌾", "👨‍🍳", "👩‍🍳", "👨‍🔧", "👩‍🔧", "👨‍🏭", "👩‍🏭", "👨‍💼", "👩‍💼", "👨‍🔬", "👩‍🔬", "👨‍💻", "👩‍💻", "👨‍🎤", "👩‍🎤", "👨‍🎨", "👩‍🎨", "👨‍✈️", "👩‍✈️", "👨‍🚀", "👩‍🚀", "👨‍🚒", "👩‍🚒", "👮", "🕵️", "💂", "🥷", "👷", "🤴", "👸", "👳", "👲", "🧕", "🤵", "👰", "🤰", "🫄", "🤱", "👼", "🎅", "🤶", "🧙", "🧚", "🧛", "🧜", "🧝", "🧞", "🧟", "🧌"
+    ]
+  },
+  {
+    name: "Animals & Nature",
+    icon: "🐶",
+    emojis: [
+      "🐵", "🐒", "🦍", "🦧", "🐶", "🐕", "🦮", "🐕‍🦺", "🐩", "🐺", "🦊", "🦝", "🐱", "🐈", "🐈‍⬛", "🦁", "🐯", "🐅", "🐆", "🐴", "🐎", "🦄", "🦓", "🦌", "🦬", "🐮", "🐂", "🐃", "🐄", "🐷", "🐖", "🐗", "🐽", "🐏", "🐑", "🐐", "🐪", "🐫", "🦙", "🦒", "🐘", "🦣", "🦏", "🦛", "🐭", "🐁", "🐀", "🐹", "🐰", "🐇", "🐿️", "🦫", "🦔", "🦇", "🐻", "🐻‍❄️", "🐨", "🐼", "🦥", "🦦", "🦨", "🦘", "🦡", "🦃", "🐔", "🐓", "🐣", "🐤", "🐥", "🐦", "🐧", "🕊️", "🦅", "🦆", "🦢", "🦉", "🦤", "🪶", "🦩", "🦚", "🦜", "🐸", "🐊", "🐢", "🦎", "🐍", "🐲", "🐉", "🦕", "🦖", "🐳", "🐋", "🐬", "🦭", "🐟", "🐠", "🐡", "🦈", "🐙", "🐚", "🪸", "🐌", "🦋", "🐛", "🐜", "🐝", "🪲", "🐞", "🦗", "🪳", "🕷️", "🕸️", "🦂", "🦟", "🪰", "🪱", "🌸", "💮", "🏵️", "🌹", "🥀", "🌺", "🌻", "🌼", "🌷", "🪷", "🌱", "🪴", "🌲", "🌳", "🌴", "🌵", "🌾", "🌿", "☘️", "🍀", "🍁", "🍂", "🍃"
+    ]
+  },
+  {
+    name: "Food & Drink",
+    icon: "🍕",
+    emojis: [
+      "🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🫐", "🥝", "🍅", "🫒", "🥥", "🥑", "🍆", "🥔", "🥕", "🌽", "🌶️", "🫑", "🥒", "🥬", "🥦", "🧄", "🧅", "🥜", "🫘", "🌰", "🍞", "🥐", "🥖", "🫓", "🥨", "🥯", "🥞", "🧇", "🧀", "🍖", "🍗", "🥩", "🥓", "🍔", "🍟", "🍕", "🌭", "🥪", "🌮", "🌯", "🫔", "🥙", "🧆", "🥚", "🍳", "🥘", "🍲", "🫕", "🥣", "🥗", "🍿", "🧈", "🧂", "🥫", "🍱", "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍠", "🍢", "🍣", "🍤", "🍥", "🥮", "🍡", "🥟", "🥠", "🥡", "🍦", "🍧", "🍨", "🍩", "🍪", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍼", "🥛", "☕", "🫖", "🍵", "🍶", "🍾", "🍷", "🍸", "🍹", "🍺", "🍻", "🥂", "🥃", "🫗", "🥤", "🧋", "🧃", "🧉", "🧊"
+    ]
+  },
+  {
+    name: "Activities & Gaming",
     icon: "🎮",
-    emojis: ["🎮", "🕹️", "👾", "🏆", "⚡", "🔥", "💥", "🎯", "🎲", "🎧", "🚀", "🛡️", "⚔️", "💎", "⭐"]
+    emojis: [
+      "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "🪃", "🥅", "⛳", "🪁", "🏹", "🎣", "🤿", "🥊", "🥋", "🎽", "🛹", "🛼", "🛷", "⛸️", "🥌", "🎿", "⛷️", "🏂", "🪂", "🏋️", "🤼", "🤸", "⛹️", "🤺", "🤾", "🏌️", "🏇", "🧘", "🏄", "🏊", "🤽", "🚣", "🧗", "🚵", "🚴", "🏆", "🥇", "🥈", "🥉", "🏅", "🎖️", "🏵️", "🎗️", "🎫", "🎟️", "🎪", "🤹", "🎭", "🩰", "🎨", "🎬", "🎤", "🎧", "🎼", "🎹", "🥁", "🪘", "🎷", "🎺", "🪗", "🎸", "🪕", "🎻", "🎲", "♟️", "🎯", "🎳", "🎮", "🕹️", "🎰"
+    ]
   },
   {
-    icon: "👍",
-    emojis: ["👍", "👎", "👏", "🙌", "🤝", "✌️", "🤞", "🤟", "🤘", "🤙", "👋", "💪", "🙏", "✨", "💯", "❤️", "🔥", "🎉", "👀", "🫡"]
+    name: "Travel & Places",
+    icon: "🚗",
+    emojis: [
+      "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🦯", "🦽", "🦼", "🛴", "🚲", "🛵", "🏍️", "🛺", "🚨", "🚔", "🚍", "🚘", "🚖", "🚡", "🚠", "🚟", "🚃", "🚋", "🚞", "🚝", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "✈️", "🛫", "🛬", "🛩️", "💺", "🛰️", "🚀", "🛸", "🚁", "🛶", "⛵", "🚤", "🛥️", "🛳️", "⛴️", "🚢", "⚓", "🛟", "⛽", "🚧", "🚦", "🚥", "🗺️", "🗿", "🗽", "🗼", "🏰", "🏯", "🏟️", "🎡", "🎢", "🎠", "⛲", "⛱️", "🏖️", "🏝️", "🏜️", "🌋", "⛰️", "🏔️", "🗻", "🏕️", "⛺", "🛖", "🏠", "🏡", "🏢", "🏣", "🏤", "🏥", "🏦", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭"
+    ]
+  },
+  {
+    name: "Objects & Tech",
+    icon: "💻",
+    emojis: [
+      "⌚", "📱", "📲", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "🕹️", "🗜️", "💽", "💾", "💿", "📀", "📼", "📷", "📸", "📹", "🎥", "📽️", "🎞️", "📞", "☎️", "📟", "📠", "📺", "📻", "🎙️", "🎚️", "🎛️", "⏱️", "⏲️", "⏰", "🕰️", "⌛", "⏳", "📡", "🔋", "🪫", "🔌", "💡", "🔦", "🕯️", "🪔", "🧯", "🛢️", "💸", "💵", "💴", "💶", "💷", "🪙", "💰", "💳", "💎", "⚖️", "🪜", "🧰", "🪛", "🔧", "🔨", "⚒️", "🛠️", "⛏️", "🪚", "🔩", "⚙️", "🪤", "🧱", "⛓️", "🧲", "🔫", "💣", "🧨", "🪓", "🔪", "🗡️", "⚔️", "🛡️", "🚬", "⚰️", "🪦", "⚱️", "🏺", "🔮", "📿", "🧿", "💈", "⚗️", "🔭", "🔬", "🕳️", "🩹", "🩺", "💊", "💉", "🩸", "🧬", "🦠", "🧫", "🧪"
+    ]
+  },
+  {
+    name: "Symbols & Hearts",
+    icon: "❤️",
+    emojis: [
+      "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❤️‍🔥", "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉️", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "⛎", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "🆔", "⚛️", "🉑", "☢️", "☣️", "📴", "📳", "🈶", "🈚", "🈸", "🈺", "🈷️", "✴️", "🆚", "💮", "🉐", "㊙️", "㊗️", "🈴", "🈵", "🈹", "🈲", "🅰️", "🅱️", "🆎", "🆑", "🅾️", "🆘", "❌", "⭕", "🛑", "⛔", "📛", "🚫", "💯", "💢", "♨️", "🚷", "🚯", "🚳", "🚱", "🔞", "📵", "🚭", "❗", "❕", "❓", "❔", "‼️", "⁉️", "🔅", "🔆", "〽️", "⚠️", "🚸", "🔱", "⚜️", "🔰", "♻️", "✅", "🈯", "💹", "❇️", "✳️", "❎", "🌐", "💠", "Ⓜ️", "🌀", "💤", "🏧", "🚾", "♿", "🅿️", "🛗", "🈳", "🈂️", "🛂", "🛃", "🛄", "🛅", "🚹", "🚺", "🚼", "⚧️", "🚻", "🚮", "🎦", "📶", "🈁", "🔣", "ℹ️", "🔤", "🔡", "🔠", "🆖", "🆗", "🆙", "🆒", "🆕", "🆓", "🔟", "🔢", "#️⃣", "*️⃣", "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "⏏️", "▶️", "⏸️", "⏯️", "⏹️", "⏺️", "⏭️", "⏮️", "⏩", "⏪", "⏫", "⏬", "◀️", "🔼", "🔽", "➡️", "⬅️", "⬆️", "⬇️", "↗️", "↘️", "↙️", "↖️", "↕️", "↔️", "↪️", "↩️", "⤴️", "⤵️", "🔀", "🔁", "🔂", "🔄", "🔃", "🎵", "🎶", "➕", "➖", "➗", "✖️", "🟰", "♾️", "💲", "💱", "™️", "©️", "®️", "👁️‍🗨️", "🔚", "🔙", "🔛", "🔝", "🔜", "〰️", "➰", "➿", "✔️", "☑️", "🔘", "🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "⚫", "⚪", "🟤", "🔺", "🔻", "🔸", "🔹", "🔶", "🔷", "🔳", "🔲", "▪️", "▫️", "◾", "◽", "◼️", "◻️", "⬛", "⬜", "🟥", "🟧", "🟨", "🟩", "🟦", "🟪", "🟫"
+    ]
+  },
+  {
+    name: "Flags",
+    icon: "🚩",
+    emojis: [
+      "🚩", "🎌", "🏴", "🏳️", "🏳️‍🌈", "🏳️‍⚧️", "🏴‍☠️", "🏁", "🇦🇨", "🇦🇩", "🇦🇪", "🇦🇫", "🇦🇬", "🇦🇮", "🇦🇱", "🇦🇲", "🇦🇴", "🇦🇶", "🇦🇷", "🇦🇸", "🇦🇹", "🇦🇺", "🇦🇼", "🇦🇽", "🇦🇿", "🇧🇦", "🇧🇧", "🇧🇩", "🇧🇪", "🇧🇫", "🇧🇬", "🇧🇭", "🇧🇮", "🇧🇯", "🇧🇱", "🇧🇲", "🇧🇳", "🇧🇴", "🇧🇶", "🇧🇷", "🇧🇸", "🇧🇹", "🇧🇻", "🇧🇼", "🇧🇾", "🇧🇿", "🇨🇦", "🇨🇨", "🇨🇩", "🇨🇫", "🇨🇬", "🇨🇭", "🇨🇮", "🇨🇰", "🇨🇱", "🇨🇲", "🇨🇳", "🇨🇴", "🇨🇵", "🇨🇷", "🇨🇺", "🇨🇻", "🇨🇼", "🇨🇽", "🇨🇾", "🇨🇿", "🇩🇪", "🇩🇬", "🇩🇯", "🇩🇰", "🇩🇲", "🇩🇴", "🇩🇿", "🇪🇦", "🇪🇨", "🇪🇪", "🇪🇬", "🇪🇭", "🇪🇷", "🇪🇸", "🇪🇹", "🇪🇺", "🇫🇮", "🇫🇯", "🇫🇰", "🇫🇲", "🇫🇴", "🇫🇷", "🇬🇦", "🇬🇧", "🇬🇩", "🇬🇪", "🇬🇫", "🇬🇬", "🇬🇭", "🇬🇮", "🇬🇱", "🇬🇲", "🇬🇳", "🇬🇵", "🇬🇶", "🇬🇷", "🇬🇸", "🇬🇹", "🇬🇺", "🇬🇼", "🇬🇾", "🇭🇰", "🇭🇲", "🇭🇳", "🇭🇷", "🇭🇹", "🇭🇺", "🇮🇨", "🇮🇩", "🇮🇪", "🇮🇱", "🇮🇲", "🇮🇳", "🇮🇴", "🇮🇶", "🇮🇷", "🇮🇸", "🇮🇹", "🇯🇪", "🇯🇲", "🇯🇴", "🇯🇵", "🇰🇪", "🇰🇬", "🇰🇭", "🇰🇮", "🇰🇲", "🇰🇳", "🇰🇵", "🇰🇷", "🇰🇼", "🇰🇾", "🇰🇿", "🇱🇦", "🇱🇧", "🇱🇨", "🇱🇮", "🇱🇰", "🇱🇷", "🇱🇸", "🇱🇹", "🇱🇺", "🇱🇻", "🇱🇾", "🇲🇦", "🇲🇨", "🇲🇩", "🇲🇪", "🇲🇫", "🇲🇬", "🇲🇭", "🇲🇰", "🇲🇱", "🇲🇲", "🇲🇳", "🇲🇴", "🇲🇵", "🇲🇶", "🇲🇷", "🇲🇸", "🇲🇹", "🇲🇺", "🇲🇻", "🇲🇼", "🇲🇽", "🇲🇾", "🇲🇿", "🇳🇦", "🇳🇨", "🇳🇪", "🇳🇫", "🇳🇬", "🇳🇮", "🇳🇱", "🇳🇴", "🇳🇵", "🇳🇷", "🇳🇺", "🇳🇿", "🇴🇲", "🇵🇦", "🇵🇪", "🇵🇫", "🇵🇬", "🇵🇭", "🇵🇰", "🇵🇱", "🇵🇲", "🇵🇳", "🇵🇷", "🇵🇸", "🇵🇹", "🇵🇼", "🇵🇾", "🇶🇦", "🇷🇪", "🇷🇴", "🇷🇸", "🇷🇺", "🇷🇼", "🇸🇦", "🇸🇧", "🇸🇨", "🇸🇩", "🇸🇪", "🇸🇬", "🇸🇭", "🇸🇮", "🇸🇯", "🇸🇰", "🇸🇱", "🇸🇲", "🇸🇳", "🇸🇴", "🇸🇷", "🇸🇸", "🇸🇹", "🇸🇻", "🇸🇽", "🇸🇾", "🇸🇿", "🇹🇦", "🇹🇨", "🇹🇩", "🇹🇫", "🇹🇬", "🇹🇭", "🇹🇯", "🇹🇰", "🇹🇱", "🇹🇲", "🇹🇳", "🇹🇴", "🇹🇷", "🇹🇹", "🇹🇻", "🇹🇼", "🇹🇿", "🇺🇦", "🇺🇬", "🇺🇲", "🇺🇳", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇦", "🇻🇨", "🇻🇪", "🇻🇬", "🇻🇮", "🇻🇳", "🇻🇺", "🇼🇫", "🇼🇸", "🇽🇰", "🇾🇪", "🇾🇹", "🇿🇦", "🇿🇲", "🇿🇼"
+    ]
   }
 ];
 
@@ -30,7 +81,13 @@ const CURATED_GIFS = [
   { id: "g9", title: "Thumbs Up", tags: ["thumbs up", "ok", "yes", "nice", "good"], url: "https://media.tenor.com/X4_0p5c0Q-MAAAAM/thumbs-up-computer.gif" },
   { id: "g10", title: "Popcorn Watching", tags: ["popcorn", "drama", "watch", "meme"], url: "https://media.tenor.com/f_wWc3J8F7sAAAAM/popcorn-eating.gif" },
   { id: "g11", title: "Anime Wow", tags: ["anime", "wow", "eyes", "sparkle"], url: "https://media.tenor.com/uR6eP4z-f_cAAAAM/anime-sparkle.gif" },
-  { id: "g12", title: "Skeleton Dance", tags: ["skeleton", "meme", "funny", "spooky"], url: "https://media.tenor.com/7b58w_B9CNEAAAAM/spooky-skeleton.gif" }
+  { id: "g12", title: "Skeleton Dance", tags: ["skeleton", "meme", "funny", "spooky"], url: "https://media.tenor.com/7b58w_B9CNEAAAAM/spooky-skeleton.gif" },
+  { id: "g13", title: "Facepalm", tags: ["facepalm", "meme", "fail", "no"], url: "https://media.tenor.com/1Gv_wSjR6F4AAAAM/picard-facepalm.gif" },
+  { id: "g14", title: "Hype Dog", tags: ["dog", "hype", "happy", "cute"], url: "https://media.tenor.com/0iH191uL2YcAAAAM/dog-excited.gif" },
+  { id: "g15", title: "Shocked Pikachu", tags: ["anime", "meme", "shocked", "pokemon"], url: "https://media.tenor.com/bC_f8a0-2fUAAAAM/pikachu-shocked.gif" },
+  { id: "g16", title: "Rage / Anger", tags: ["rage", "angry", "gaming", "mad"], url: "https://media.tenor.com/Y36Wd-5657wAAAAM/keyboard-smash-rage.gif" },
+  { id: "g17", title: "Laughing Hard", tags: ["laugh", "funny", "meme", "lol"], url: "https://media.tenor.com/uPvd-6i79EAAAAAM/laughing-hard.gif" },
+  { id: "g18", title: "Salute / Respect", tags: ["salute", "respect", "gg", "honor"], url: "https://media.tenor.com/39J-L9C92eAAAAAM/crying-salute.gif" }
 ];
 
 export class MessageInput {
@@ -41,6 +98,7 @@ export class MessageInput {
     this.isEmojiOpen = false;
     this.isGifOpen = false;
     this.activeEmojiCategory = 0;
+    this.emojiSearchQuery = '';
     this.activeGifCategory = 'all';
     this.gifSearchQuery = '';
     this.lastSentTime = 0;
@@ -84,6 +142,10 @@ export class MessageInput {
           <input type="file" id="chat-file-input" style="display: none;" />
 
           <div class="input-actions">
+            <button class="icon-btn" id="format-bold-btn" type="button" title="Bold" style="font-size: 11px; font-weight: 800; padding: 4px 6px;">B</button>
+            <button class="icon-btn" id="format-italic-btn" type="button" title="Italic" style="font-size: 11px; font-style: italic; padding: 4px 6px;">I</button>
+            <button class="icon-btn" id="format-code-btn" type="button" title="Code" style="font-size: 11px; font-family: var(--font-mono); padding: 4px 6px;">&lt;&gt;</button>
+            <button class="icon-btn" id="format-spoiler-btn" type="button" title="Spoiler" style="font-size: 11px; font-weight: 800; padding: 4px 6px;">||</button>
             <button class="icon-btn" id="attach-file-btn" type="button" title="Upload File (<10MB)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
@@ -127,9 +189,12 @@ export class MessageInput {
         </div>
 
         <div class="emoji-popover" id="emoji-popover" style="display: none;">
+          <div style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle);">
+            <input type="text" id="emoji-search-input" placeholder="Search emojis..." style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-primary); padding: 4px 8px; font-size: 12px; outline: none;" autocomplete="off" />
+          </div>
           <div class="emoji-categories">
             ${EMOJI_CATEGORIES.map((cat, idx) => `
-              <button type="button" class="emoji-cat-btn ${idx === 0 ? 'active' : ''}" data-cat-index="${idx}">
+              <button type="button" class="emoji-cat-btn ${idx === 0 ? 'active' : ''}" data-cat-index="${idx}" title="${cat.name}">
                 ${cat.icon}
               </button>
             `).join('')}
@@ -167,6 +232,7 @@ export class MessageInput {
     this.emojiBtn = this.container.querySelector('#emoji-toggle-btn');
     this.emojiPopover = this.container.querySelector('#emoji-popover');
     this.emojiGrid = this.container.querySelector('#emoji-grid');
+    this.emojiSearchInput = this.container.querySelector('#emoji-search-input');
     this.gifBtn = this.container.querySelector('#gif-toggle-btn');
     this.gifPopover = this.container.querySelector('#gif-popover');
     this.gifGrid = this.container.querySelector('#gif-results-grid');
@@ -175,6 +241,10 @@ export class MessageInput {
     this.replyBar = this.container.querySelector('#reply-preview-bar');
     this.replyText = this.container.querySelector('#reply-preview-text');
     this.cancelReplyBtn = this.container.querySelector('#cancel-reply-btn');
+    this.formatBoldBtn = this.container.querySelector('#format-bold-btn');
+    this.formatItalicBtn = this.container.querySelector('#format-italic-btn');
+    this.formatCodeBtn = this.container.querySelector('#format-code-btn');
+    this.formatSpoilerBtn = this.container.querySelector('#format-spoiler-btn');
 
     this.attachEvents();
     this.renderEmojiGrid();
@@ -184,6 +254,25 @@ export class MessageInput {
   }
 
   attachEvents() {
+    const wrapSelection = (prefix, suffix) => {
+      const start = this.textarea.selectionStart || 0;
+      const end = this.textarea.selectionEnd || 0;
+      const val = this.textarea.value;
+      const selected = val.substring(start, end);
+      const replacement = `${prefix}${selected || 'text'}${suffix}`;
+      this.textarea.value = val.substring(0, start) + replacement + val.substring(end);
+      const newStart = start + prefix.length;
+      const newEnd = selected ? newStart + selected.length : newStart + 4;
+      this.textarea.selectionStart = newStart;
+      this.textarea.selectionEnd = newEnd;
+      this.textarea.focus();
+    };
+
+    this.formatBoldBtn?.addEventListener('click', () => wrapSelection('**', '**'));
+    this.formatItalicBtn?.addEventListener('click', () => wrapSelection('*', '*'));
+    this.formatCodeBtn?.addEventListener('click', () => wrapSelection('`', '`'));
+    this.formatSpoilerBtn?.addEventListener('click', () => wrapSelection('||', '||'));
+
     this.textarea.addEventListener('input', () => {
       this.textarea.style.height = 'auto';
       this.textarea.style.height = `${Math.min(this.textarea.scrollHeight, 120)}px`;
@@ -254,10 +343,18 @@ export class MessageInput {
       e.stopPropagation();
       this.isEmojiOpen = !this.isEmojiOpen;
       this.emojiPopover.style.display = this.isEmojiOpen ? 'flex' : 'none';
-      if (this.isEmojiOpen && this.isGifOpen) {
-        this.isGifOpen = false;
-        this.gifPopover.style.display = 'none';
+      if (this.isEmojiOpen) {
+        if (this.isGifOpen) {
+          this.isGifOpen = false;
+          this.gifPopover.style.display = 'none';
+        }
+        setTimeout(() => this.emojiSearchInput?.focus(), 50);
       }
+    });
+
+    this.emojiSearchInput?.addEventListener('input', (e) => {
+      this.emojiSearchQuery = e.target.value.toLowerCase().trim();
+      this.renderEmojiGrid();
     });
 
     this.gifBtn?.addEventListener('click', (e) => {
@@ -377,10 +474,28 @@ export class MessageInput {
   }
 
   renderEmojiGrid() {
-    const cat = EMOJI_CATEGORIES[this.activeEmojiCategory];
-    if (!cat) return;
+    let emojisToRender = [];
+    if (this.emojiSearchQuery) {
+      const q = this.emojiSearchQuery;
+      const matched = [];
+      for (const cat of EMOJI_CATEGORIES) {
+        if (cat.name.toLowerCase().includes(q)) {
+          matched.push(...cat.emojis);
+        } else {
+          for (const em of cat.emojis) {
+            matched.push(em);
+          }
+        }
+      }
+      emojisToRender = [...new Set(matched)];
+    } else {
+      const cat = EMOJI_CATEGORIES[this.activeEmojiCategory];
+      emojisToRender = cat ? cat.emojis : [];
+    }
 
-    this.emojiGrid.innerHTML = cat.emojis
+    if (!this.emojiGrid) return;
+
+    this.emojiGrid.innerHTML = emojisToRender
       .map((emoji) => `<button type="button" class="emoji-btn" data-emoji="${emoji}">${emoji}</button>`)
       .join('');
 

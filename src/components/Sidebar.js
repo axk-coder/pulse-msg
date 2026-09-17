@@ -101,6 +101,8 @@ export class Sidebar {
             </div>
 
             <div class="sidebar-footer-links">
+              <button type="button" class="footer-link-btn" id="footer-shortcuts-btn">Keys</button>
+              <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-privacy-btn">Privacy</button>
               <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-terms-btn">Terms</button>
@@ -119,14 +121,16 @@ export class Sidebar {
   }
 
   attachEvents() {
-    const railDmBtn = this.container.querySelector('#rail-dm-btn');
-    railDmBtn?.addEventListener('click', () => {
+    const dmBtn = this.container.querySelector('#rail-dm-btn');
+    dmBtn?.addEventListener('click', () => {
       appState.setActiveDM(null);
+      appState.toggleMobileSidebar(false);
     });
 
-    const railGlobalBtn = this.container.querySelector('#rail-global-btn');
-    railGlobalBtn?.addEventListener('click', () => {
-      appState.setGlobalChat();
+    const globalBtn = this.container.querySelector('#rail-global-btn');
+    globalBtn?.addEventListener('click', () => {
+      appState.setActiveGlobal();
+      appState.toggleMobileSidebar(false);
     });
 
     const railAddBtn = this.container.querySelector('#rail-add-server-btn');
@@ -162,6 +166,9 @@ export class Sidebar {
           : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>';
       }
     });
+
+    const shortcutsBtn = this.container.querySelector('#footer-shortcuts-btn');
+    shortcutsBtn?.addEventListener('click', () => this.callbacks.onOpenShortcutsModal?.());
 
     const privacyBtn = this.container.querySelector('#footer-privacy-btn');
     privacyBtn?.addEventListener('click', () => this.callbacks.onOpenLegalModal('privacy'));
