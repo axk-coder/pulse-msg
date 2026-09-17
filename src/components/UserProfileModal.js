@@ -106,9 +106,9 @@ export class UserProfileModal {
     }) : [];
 
     this.container.innerHTML = `
-      <div class="modal-overlay" id="user-profile-overlay" style="background: rgba(0, 0, 0, 0.75);">
-        <div class="modal-card" style="max-width: 360px; padding: 0; overflow: hidden; background: #161616; border: 1px solid #2a2a2a;">
-          <div style="height: 80px; background: #222222; position: relative;">
+      <div class="modal-overlay" id="user-profile-overlay">
+        <div class="modal-card" style="max-width: 360px; padding: 0; overflow: hidden; background: var(--bg-modal); border: 1px solid var(--border-medium);">
+          <div style="height: 80px; background: var(--bg-card-hover); position: relative;">
             <button type="button" id="close-user-profile-btn" style="position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.5); border: none; color: #ffffff; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -119,7 +119,7 @@ export class UserProfileModal {
 
           <div style="padding: 0 20px 20px; position: relative;">
             <div style="position: relative; width: 64px; height: 64px; margin-top: -32px;">
-              <div class="user-profile-avatar-circle" style="width: 64px; height: 64px; border-radius: 50%; background: #111111; border: 4px solid #161616; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #ffffff;">
+              <div class="user-profile-avatar-circle" style="width: 64px; height: 64px; border-radius: 50%; background: var(--bg-card); border: 4px solid var(--bg-modal); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: var(--text-primary);">
                 ${this.profile?.avatarUrl 
                   ? `<img src="${this.escapeHtml(this.profile.avatarUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
                   : initial
@@ -130,7 +130,7 @@ export class UserProfileModal {
 
             <div style="margin-top: 12px;">
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <h3 style="font-size: 16px; font-weight: 700; color: #ffffff;">${this.escapeHtml(displayName)}</h3>
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">${this.escapeHtml(displayName)}</h3>
                 ${(this.profile?.appRank && !this.profile.appRank.hidden) ? `
                   <span class="app-rank-badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(255, 255, 255, 0.08); border: 1px solid ${this.escapeHtml(this.profile.appRank.color || '#ffffff')}; color: ${this.escapeHtml(this.profile.appRank.color || '#ffffff')};">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11">
@@ -143,7 +143,7 @@ export class UserProfileModal {
               <div style="font-size: 13px; color: var(--text-secondary); margin-top: 1px;">@${this.escapeHtml(this.profile?.username || displayName.toLowerCase().replace(/\s+/g, ''))}</div>
               <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: capitalize;">${this.escapeHtml(this.profile?.presence || 'offline')}</div>
               ${this.profile?.statusMessage ? `
-                <div style="margin-top: 8px; padding: 6px 10px; background: #202020; border: 1px solid #303030; border-radius: 4px; font-size: 12px; color: #e0e0e0;">
+                <div style="margin-top: 8px; padding: 6px 10px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-primary);">
                   ${this.escapeHtml(this.profile.statusMessage)}
                 </div>
               ` : ''}
@@ -158,15 +158,15 @@ export class UserProfileModal {
             ` : ''}
 
             ${server ? `
-              <div style="margin-top: 20px; border-top: 1px solid #262626; padding-top: 14px;">
-                <div style="font-size: 11px; font-weight: 700; color: #888888; text-transform: uppercase; margin-bottom: 8px;">
+              <div style="margin-top: 20px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
                   Roles
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="profile-roles-container">
                   ${assignableRoles.length > 0 ? assignableRoles.map(r => {
                     const isAssigned = assignedRoles.includes(r.id);
                     return `
-                      <button type="button" class="role-pill-toggle" data-role-id="${this.escapeHtml(r.id)}" style="padding: 4px 10px; font-size: 11px; border-radius: 4px; border: 1px solid ${isAssigned ? '#ffffff' : '#333333'}; background: ${isAssigned ? '#2c2c2c' : '#141414'}; color: ${isAssigned ? '#ffffff' : '#777777'}; cursor: pointer;">
+                      <button type="button" class="role-pill-toggle" data-role-id="${this.escapeHtml(r.id)}" style="padding: 4px 10px; font-size: 11px; border-radius: var(--radius-sm); border: 1px solid ${isAssigned ? 'var(--border-focus)' : 'var(--border-medium)'}; background: ${isAssigned ? 'var(--bg-active)' : 'var(--bg-card)'}; color: ${isAssigned ? 'var(--text-primary)' : 'var(--text-secondary)'}; cursor: pointer;">
                         ${isAssigned ? '✓ ' : '+ '}${this.escapeHtml(r.name)}
                       </button>
                     `;
@@ -174,17 +174,17 @@ export class UserProfileModal {
                     const isAssigned = assignedRoles.includes(r.id);
                     if (!isAssigned) return '';
                     return `
-                      <span style="padding: 4px 10px; font-size: 11px; border-radius: 4px; border: 1px solid #333333; background: #1c1c1c; color: #cccccc;">
+                      <span style="padding: 4px 10px; font-size: 11px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-secondary);">
                         ${this.escapeHtml(r.name)}
                       </span>
                     `;
                   }).join('')}
-                  ${assignedRoles.length === 0 && assignableRoles.length === 0 ? '<span style="font-size: 12px; color: #555;">No roles</span>' : ''}
+                  ${assignedRoles.length === 0 && assignableRoles.length === 0 ? '<span style="font-size: 12px; color: var(--text-muted);">No roles</span>' : ''}
                 </div>
 
                 ${(canModifyTarget) ? `
                   <div style="margin-top: 16px; display: flex; gap: 8px;">
-                    <button type="button" class="form-btn-submit" id="btn-profile-ban" style="flex: 1; padding: 6px 0; font-size: 12px; background: transparent; border: 1px solid #444444; color: #888888;">
+                    <button type="button" class="form-btn-submit" id="btn-profile-ban" style="flex: 1; padding: 6px 0; font-size: 12px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted);">
                       Ban Member
                     </button>
                   </div>

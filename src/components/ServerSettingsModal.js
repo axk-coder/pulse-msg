@@ -154,10 +154,10 @@ export class ServerSettingsModal {
 
     this.container.innerHTML = `
       <div class="modal-overlay" id="srv-settings-overlay" style="padding: 0; background: rgba(0, 0, 0, 0.85); display: flex; align-items: stretch; justify-content: stretch;">
-        <div class="discord-settings-wrapper" style="display: flex; width: 100vw; height: 100vh; background: #111111; color: #eeeeee; font-family: var(--font-main);">
+        <div class="discord-settings-wrapper" style="display: flex; width: 100vw; height: 100vh; background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-main);">
           
-          <div class="discord-settings-sidebar" style="width: 240px; background: #181818; border-right: 1px solid #282828; display: flex; flex-direction: column; padding: 24px 16px;">
-            <div style="font-size: 11px; font-weight: 700; color: #888888; text-transform: uppercase; margin-bottom: 12px; padding: 0 8px;">
+          <div class="discord-settings-sidebar" style="width: 240px; background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; padding: 24px 16px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; padding: 0 8px;">
               ${this.escapeHtml(server.name || 'Server')}
             </div>
 
@@ -167,16 +167,16 @@ export class ServerSettingsModal {
                 if (t === 'roles') label += ` (${sortedRoles.length})`;
                 if (t === 'channels') label += ` (${channels.length})`;
                 return `
-                  <button type="button" class="discord-nav-btn ${this.tab === t ? 'active' : ''}" id="nav-${t}-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 500; border-radius: 4px; border: none; background: ${this.tab === t ? '#2c2c2c' : 'transparent'}; color: ${this.tab === t ? '#ffffff' : '#aaaaaa'}; text-align: left; cursor: pointer;">
+                  <button type="button" class="discord-nav-btn ${this.tab === t ? 'active' : ''}" id="nav-${t}-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 500; border-radius: var(--radius-sm); border: none; background: ${this.tab === t ? 'var(--bg-active)' : 'transparent'}; color: ${this.tab === t ? 'var(--text-primary)' : 'var(--text-secondary)'}; text-align: left; cursor: pointer;">
                     ${label}
                   </button>
                 `;
               }).join('')}
             </div>
 
-            <div style="border-top: 1px solid #282828; padding-top: 12px;">
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 12px;">
               ${isOwner ? `
-                <button type="button" id="btn-delete-server" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 500; border-radius: 4px; border: none; background: transparent; color: #888888; cursor: pointer; text-align: left;">
+                <button type="button" id="btn-delete-server" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 500; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text-muted); cursor: pointer; text-align: left;">
                   <span>Delete Server</span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                     <polyline points="3 6 5 6 21 6"></polyline>
@@ -184,7 +184,7 @@ export class ServerSettingsModal {
                   </svg>
                 </button>
               ` : `
-                <button type="button" id="btn-leave-server" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 500; border-radius: 4px; border: none; background: transparent; color: #888888; cursor: pointer; text-align: left;">
+                <button type="button" id="btn-leave-server" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 500; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text-muted); cursor: pointer; text-align: left;">
                   <span>Leave Server</span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -199,17 +199,17 @@ export class ServerSettingsModal {
           <div class="discord-settings-main" style="flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 40px 48px; position: relative;">
             
             <div style="position: absolute; top: 24px; right: 32px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-              <button type="button" id="srv-settings-close-btn" style="width: 36px; height: 36px; border-radius: 50%; background: #222222; border: 1px solid #333333; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <button type="button" id="srv-settings-close-btn" style="width: 36px; height: 36px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border-medium); color: var(--text-primary); display: flex; align-items: center; justify-content: center; cursor: pointer;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
-              <span style="font-size: 10px; font-weight: 700; color: #888888;">ESC</span>
+              <span style="font-size: 10px; font-weight: 700; color: var(--text-muted);">ESC</span>
             </div>
 
             ${this.error ? `<div class="form-error-banner" style="margin-bottom: 20px;"><span>${this.escapeHtml(this.error)}</span></div>` : ''}
-            ${this.success ? `<div style="padding: 10px 14px; background: #1c1c1c; border: 1px solid #383838; border-radius: 4px; font-size: 13px; margin-bottom: 20px; color: #ffffff;">${this.escapeHtml(this.success)}</div>` : ''}
+            ${this.success ? `<div style="padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 20px; color: var(--text-primary);">${this.escapeHtml(this.success)}</div>` : ''}
 
             ${this.tab === 'profile' ? this.renderProfileTab(server, canManageServer, memberCount) : ''}
             ${this.tab === 'channels' ? this.renderChannelsTab(server, channels, editingChannel, canManageChannels, sortedRoles) : ''}
@@ -230,7 +230,7 @@ export class ServerSettingsModal {
       <div style="display: flex; gap: 40px; max-width: 860px;">
         <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
           <div>
-            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #ffffff;">Server Profile</h2>
+            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">Server Profile</h2>
           </div>
           <form id="srv-profile-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 16px;">
             <div class="form-group">
@@ -253,19 +253,19 @@ export class ServerSettingsModal {
           </form>
         </div>
         <div style="width: 280px; display: flex; flex-direction: column; gap: 12px;">
-          <span style="font-size: 11px; font-weight: 700; color: #888888; text-transform: uppercase;">Preview</span>
-          <div style="background: #181818; border: 1px solid #282828; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);">
-            <div style="height: 72px; background: #242424; border-bottom: 1px solid #303030;"></div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Preview</span>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-md);">
+            <div style="height: 72px; background: var(--bg-card-hover); border-bottom: 1px solid var(--border-subtle);"></div>
             <div style="padding: 0 16px 16px; position: relative;">
-              <div style="width: 52px; height: 52px; border-radius: 50%; background: #141414; border: 3px solid #181818; margin-top: -26px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #ffffff;">
+              <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-input); border: 3px solid var(--bg-card); margin-top: -26px; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: var(--text-primary);">
                 ${server.iconUrl 
                   ? `<img src="${this.escapeHtml(server.iconUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="" />`
                   : (server.name || 'S').charAt(0).toUpperCase()
                 }
               </div>
               <div style="margin-top: 10px;">
-                <h4 style="font-size: 15px; font-weight: 700; color: #ffffff;" id="preview-server-name">${this.escapeHtml(server.name || 'Server')}</h4>
-                <div style="font-size: 11px; color: #888888; margin-top: 4px;">${memberCount} Members</div>
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-primary);" id="preview-server-name">${this.escapeHtml(server.name || 'Server')}</h4>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${memberCount} Members</div>
               </div>
             </div>
           </div>
@@ -280,7 +280,7 @@ export class ServerSettingsModal {
     return `
       <div style="max-width: 860px; display: flex; flex-direction: column; gap: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Roles</h2>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">Roles</h2>
           ${canManageRoles ? `
             <button type="button" class="form-btn-submit" id="btn-open-create-role" style="width: auto; padding: 6px 16px; font-size: 12px;">
               + Create Role
@@ -289,7 +289,7 @@ export class ServerSettingsModal {
         </div>
 
         ${canManageRoles ? `
-          <div id="create-role-container" style="display: none; background: #181818; border: 1px solid #282828; border-radius: 6px; padding: 16px;">
+          <div id="create-role-container" style="display: none; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 16px;">
             <form id="new-role-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px;">
               <div class="form-group">
                 <label class="form-label" for="new-role-title">Role Name</label>
@@ -297,7 +297,7 @@ export class ServerSettingsModal {
               </div>
               <div>
                 <label class="form-label" style="margin-bottom: 8px;">Permissions</label>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 13px; color: #cccccc;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 13px; color: var(--text-secondary);">
                   ${ALL_PERMISSIONS.map(p => `
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                       <input type="checkbox" class="new-role-perm-cb" data-perm="${p.id}" ${p.id === 'send_messages' ? 'checked' : ''} />
@@ -307,7 +307,7 @@ export class ServerSettingsModal {
                 </div>
               </div>
               <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button type="button" class="form-btn-submit" id="btn-cancel-create-role" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid #333333; color: #888888;">Cancel</button>
+                <button type="button" class="form-btn-submit" id="btn-cancel-create-role" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted);">Cancel</button>
                 <button type="submit" class="form-btn-submit" style="width: auto; padding: 6px 16px; font-size: 12px;">Save Role</button>
               </div>
             </form>
@@ -315,7 +315,7 @@ export class ServerSettingsModal {
         ` : ''}
 
         <div style="display: flex; gap: 16px; min-height: 300px;">
-          <div style="width: 240px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #282828; padding-right: 16px;">
+          <div style="width: 240px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--border-subtle); padding-right: 16px;">
             ${sortedRoles.map((r, idx) => {
               const isActive = this.editingRoleId === r.id;
               const canEdit = canManageRoles && (isOwner || (r.position ?? 999) > myTopPos);
@@ -323,13 +323,13 @@ export class ServerSettingsModal {
                 <div style="display: flex; align-items: center; gap: 4px;">
                   ${(canManageRoles && canEdit) ? `
                     <div style="display: flex; flex-direction: column; gap: 1px;">
-                      <button type="button" class="btn-role-move-up" data-role-id="${this.escapeHtml(r.id)}" style="background: none; border: none; color: ${idx === 0 ? '#333' : '#777'}; cursor: ${idx === 0 ? 'default' : 'pointer'}; padding: 0; line-height: 1; font-size: 10px;" ${idx === 0 ? 'disabled' : ''}>▲</button>
-                      <button type="button" class="btn-role-move-down" data-role-id="${this.escapeHtml(r.id)}" style="background: none; border: none; color: ${idx === sortedRoles.length - 1 ? '#333' : '#777'}; cursor: ${idx === sortedRoles.length - 1 ? 'default' : 'pointer'}; padding: 0; line-height: 1; font-size: 10px;" ${idx === sortedRoles.length - 1 ? 'disabled' : ''}>▼</button>
+                      <button type="button" class="btn-role-move-up" data-role-id="${this.escapeHtml(r.id)}" style="background: none; border: none; color: ${idx === 0 ? 'var(--text-muted)' : 'var(--text-secondary)'}; cursor: ${idx === 0 ? 'default' : 'pointer'}; padding: 0; line-height: 1; font-size: 10px;" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                      <button type="button" class="btn-role-move-down" data-role-id="${this.escapeHtml(r.id)}" style="background: none; border: none; color: ${idx === sortedRoles.length - 1 ? 'var(--text-muted)' : 'var(--text-secondary)'}; cursor: ${idx === sortedRoles.length - 1 ? 'default' : 'pointer'}; padding: 0; line-height: 1; font-size: 10px;" ${idx === sortedRoles.length - 1 ? 'disabled' : ''}>▼</button>
                     </div>
                   ` : '<div style="width: 12px;"></div>'}
-                  <button type="button" class="btn-select-role" data-role-id="${this.escapeHtml(r.id)}" style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; font-size: 13px; font-weight: ${isActive ? '600' : '500'}; border-radius: 4px; border: 1px solid ${isActive ? '#444' : 'transparent'}; background: ${isActive ? '#222' : 'transparent'}; color: ${isActive ? '#fff' : '#bbb'}; text-align: left; cursor: pointer;">
+                  <button type="button" class="btn-select-role" data-role-id="${this.escapeHtml(r.id)}" style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; font-size: 13px; font-weight: ${isActive ? '600' : '500'}; border-radius: var(--radius-sm); border: 1px solid ${isActive ? 'var(--border-strong)' : 'transparent'}; background: ${isActive ? 'var(--bg-active)' : 'transparent'}; color: ${isActive ? 'var(--text-primary)' : 'var(--text-secondary)'}; text-align: left; cursor: pointer;">
                     <span>${this.escapeHtml(r.name)}</span>
-                    <span style="font-size: 10px; color: #555;">${idx + 1}</span>
+                    <span style="font-size: 10px; color: var(--text-muted);">${idx + 1}</span>
                   </button>
                 </div>
               `;
@@ -338,7 +338,7 @@ export class ServerSettingsModal {
 
           <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
             ${editingRole ? this.renderRoleEditor(editingRole, canManageRoles, isOwner, myTopPos) : `
-              <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #555; font-size: 14px;">
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 14px;">
                 Select a role to edit
               </div>
             `}
@@ -355,10 +355,10 @@ export class ServerSettingsModal {
     const perms = role.permissions || [];
 
     return `
-      <div style="background: #181818; border: 1px solid #282828; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 20px; display: flex; flex-direction: column; gap: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="font-size: 16px; font-weight: 700; color: #fff;">Edit Role — ${this.escapeHtml(role.name)}</h3>
-          <span style="font-size: 11px; color: #555; background: #1a1a1a; padding: 2px 8px; border-radius: 3px;">Position ${(role.position ?? 999) + 1}</span>
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Edit Role — ${this.escapeHtml(role.name)}</h3>
+          <span style="font-size: 11px; color: var(--text-muted); background: var(--bg-hover); padding: 2px 8px; border-radius: var(--radius-sm);">Position ${(role.position ?? 999) + 1}</span>
         </div>
 
         <div class="form-group">
@@ -372,7 +372,7 @@ export class ServerSettingsModal {
             ${ALL_PERMISSIONS.map(p => {
               const has = perms.includes(p.id);
               return `
-                <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${has ? '#1e1e1e' : '#141414'}; border: 1px solid ${has ? '#383838' : '#242424'}; border-radius: 4px; font-size: 13px; color: ${has ? '#eee' : '#777'}; cursor: ${canEdit ? 'pointer' : 'default'};">
+                <label style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: ${has ? 'var(--bg-active)' : 'var(--bg-input)'}; border: 1px solid ${has ? 'var(--border-strong)' : 'var(--border-subtle)'}; border-radius: var(--radius-sm); font-size: 13px; color: ${has ? 'var(--text-primary)' : 'var(--text-muted)'}; cursor: ${canEdit ? 'pointer' : 'default'};">
                   <input type="checkbox" class="edit-role-perm-cb" data-perm="${p.id}" ${has ? 'checked' : ''} ${canEdit ? '' : 'disabled'} />
                   ${p.label}
                 </label>
@@ -384,7 +384,7 @@ export class ServerSettingsModal {
         ${canEdit ? `
           <div style="display: flex; gap: 8px; justify-content: space-between; margin-top: 8px;">
             ${!isAdmin ? `
-              <button type="button" class="form-btn-submit" id="btn-delete-editing-role" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid #333; color: #888;">
+              <button type="button" class="form-btn-submit" id="btn-delete-editing-role" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted);">
                 Delete Role
               </button>
             ` : '<div></div>'}
@@ -393,7 +393,7 @@ export class ServerSettingsModal {
             </button>
           </div>
         ` : `
-          <div style="font-size: 12px; color: #555; padding: 8px; background: #141414; border-radius: 4px; text-align: center;">
+          <div style="font-size: 12px; color: var(--text-muted); padding: 8px; background: var(--bg-input); border-radius: var(--radius-sm); text-align: center;">
             This role is above yours in the hierarchy
           </div>
         `}
@@ -405,7 +405,7 @@ export class ServerSettingsModal {
     return `
       <div style="max-width: 860px; display: flex; flex-direction: column; gap: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Channels</h2>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">Channels</h2>
           ${canManageChannels ? `
             <button type="button" class="form-btn-submit" id="btn-open-create-channel" style="width: auto; padding: 6px 16px; font-size: 12px;">
               + Create Channel
@@ -414,15 +414,15 @@ export class ServerSettingsModal {
         </div>
 
         ${canManageChannels ? `
-          <div id="create-channel-container" style="display: ${this.showCreateChannel ? 'block' : 'none'}; background: #181818; border: 1px solid #282828; border-radius: 6px; padding: 16px;">
+          <div id="create-channel-container" style="display: ${this.showCreateChannel ? 'block' : 'none'}; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 16px;">
             <form id="new-channel-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px;">
               <div class="form-group">
                 <label class="form-label" for="new-channel-name">Channel Name</label>
                 <input type="text" id="new-channel-name" class="form-input" placeholder="e.g. announcements" required maxlength="30" style="text-transform: lowercase;" />
-                <div style="font-size: 11px; color: #555; margin-top: 4px;">Lowercase letters, numbers, hyphens, and underscores only</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Lowercase letters, numbers, hyphens, and underscores only</div>
               </div>
               <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button type="button" class="form-btn-submit" id="btn-cancel-create-channel" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid #333333; color: #888888;">Cancel</button>
+                <button type="button" class="form-btn-submit" id="btn-cancel-create-channel" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted);">Cancel</button>
                 <button type="submit" class="form-btn-submit" style="width: auto; padding: 6px 16px; font-size: 12px;">Create</button>
               </div>
             </form>
@@ -430,26 +430,26 @@ export class ServerSettingsModal {
         ` : ''}
 
         <div style="display: flex; gap: 16px; min-height: 300px;">
-          <div style="width: 220px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #282828; padding-right: 16px;">
+          <div style="width: 220px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--border-subtle); padding-right: 16px;">
             ${channels.map((ch, idx) => {
               const isActive = this.editingChannelId === ch.id;
               return `
-                <div style="display: flex; align-items: center; gap: 4px; width: 100%; border-radius: 4px; background: ${isActive ? '#222' : 'transparent'}; border: 1px solid ${isActive ? '#444' : 'transparent'}; padding-right: 4px;">
-                  <button type="button" class="btn-select-channel" data-channel-id="${this.escapeHtml(ch.id)}" style="display: flex; align-items: center; gap: 8px; flex: 1; padding: 8px 10px; font-size: 13px; font-weight: ${isActive ? '600' : '500'}; background: transparent; border: none; color: ${isActive ? '#fff' : '#bbb'}; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <span style="color: #555; font-size: 15px;">#</span>
+                <div style="display: flex; align-items: center; gap: 4px; width: 100%; border-radius: var(--radius-sm); background: ${isActive ? 'var(--bg-active)' : 'transparent'}; border: 1px solid ${isActive ? 'var(--border-strong)' : 'transparent'}; padding-right: 4px;">
+                  <button type="button" class="btn-select-channel" data-channel-id="${this.escapeHtml(ch.id)}" style="display: flex; align-items: center; gap: 8px; flex: 1; padding: 8px 10px; font-size: 13px; font-weight: ${isActive ? '600' : '500'}; background: transparent; border: none; color: ${isActive ? 'var(--text-primary)' : 'var(--text-secondary)'}; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span style="color: var(--text-muted); font-size: 15px;">#</span>
                     <span>${this.escapeHtml(ch.name || ch.id)}</span>
                   </button>
                   ${canManageChannels ? `
                     <div style="display: flex; align-items: center; gap: 2px;">
                       ${idx > 0 ? `
-                        <button type="button" class="icon-btn btn-settings-ch-up" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Up" style="padding: 2px; color: #888;">
+                        <button type="button" class="icon-btn btn-settings-ch-up" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Up" style="padding: 2px; color: var(--text-muted);">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
                             <polyline points="18 15 12 9 6 15"></polyline>
                           </svg>
                         </button>
                       ` : ''}
                       ${idx < channels.length - 1 ? `
-                        <button type="button" class="icon-btn btn-settings-ch-down" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Down" style="padding: 2px; color: #888;">
+                        <button type="button" class="icon-btn btn-settings-ch-down" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Down" style="padding: 2px; color: var(--text-muted);">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
                             <polyline points="6 9 12 15 18 9"></polyline>
                           </svg>
@@ -460,12 +460,12 @@ export class ServerSettingsModal {
                 </div>
               `;
             }).join('')}
-            ${channels.length === 0 ? '<div style="font-size: 13px; color: #555; padding: 8px;">No channels</div>' : ''}
+            ${channels.length === 0 ? '<div style="font-size: 13px; color: var(--text-muted); padding: 8px;">No channels</div>' : ''}
           </div>
 
           <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
             ${editingChannel ? this.renderChannelEditor(editingChannel, canManageChannels, sortedRoles, server) : `
-              <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #555; font-size: 14px;">
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 14px;">
                 Select a channel to edit
               </div>
             `}
@@ -480,10 +480,10 @@ export class ServerSettingsModal {
     const overrides = (server.channelOverrides && server.channelOverrides[channel.id]) || {};
 
     return `
-      <div style="background: #181818; border: 1px solid #282828; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 20px; display: flex; flex-direction: column; gap: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="font-size: 16px; font-weight: 700; color: #fff;"># ${this.escapeHtml(channel.name || channel.id)}</h3>
-          ${isDefault ? '<span style="font-size: 11px; color: #555; background: #1a1a1a; padding: 2px 8px; border-radius: 3px;">Default</span>' : ''}
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);"># ${this.escapeHtml(channel.name || channel.id)}</h3>
+          ${isDefault ? '<span style="font-size: 11px; color: var(--text-muted); background: var(--bg-hover); padding: 2px 8px; border-radius: var(--radius-sm);">Default</span>' : ''}
         </div>
 
         ${canManageChannels ? `
@@ -499,15 +499,15 @@ export class ServerSettingsModal {
             ${sortedRoles.map(role => {
               const roleOverride = overrides[role.id] || {};
               return `
-                <div style="background: #141414; border: 1px solid #242424; border-radius: 6px; padding: 12px;">
-                  <div style="font-size: 13px; font-weight: 600; color: #ddd; margin-bottom: 8px;">${this.escapeHtml(role.name)}</div>
+                <div style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px;">
+                  <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">${this.escapeHtml(role.name)}</div>
                   <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
                     ${CHANNEL_PERMISSIONS.map(p => {
                       const val = roleOverride[p.id];
                       const stateLabel = val === true ? '✓' : val === false ? '✗' : '—';
-                      const stateColor = val === true ? '#6f6' : val === false ? '#f66' : '#666';
+                      const stateColor = val === true ? '#6f6' : val === false ? '#f66' : 'var(--text-muted)';
                       return `
-                        <button type="button" class="ch-perm-toggle" data-role-id="${this.escapeHtml(role.id)}" data-perm="${p.id}" data-current="${val === true ? 'allow' : val === false ? 'deny' : 'inherit'}" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; font-size: 12px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; color: #bbb; cursor: ${canManageChannels ? 'pointer' : 'default'};" ${canManageChannels ? '' : 'disabled'}>
+                        <button type="button" class="ch-perm-toggle" data-role-id="${this.escapeHtml(role.id)}" data-perm="${p.id}" data-current="${val === true ? 'allow' : val === false ? 'deny' : 'inherit'}" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; font-size: 12px; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: var(--text-secondary); cursor: ${canManageChannels ? 'pointer' : 'default'};" ${canManageChannels ? '' : 'disabled'}>
                           <span>${p.label}</span>
                           <span style="font-weight: 700; color: ${stateColor}; font-size: 13px;">${stateLabel}</span>
                         </button>
@@ -517,15 +517,15 @@ export class ServerSettingsModal {
                 </div>
               `;
             }).join('')}
-            ${sortedRoles.length === 0 ? '<div style="font-size: 12px; color: #555;">No roles configured</div>' : ''}
+            ${sortedRoles.length === 0 ? '<div style="font-size: 12px; color: var(--text-muted);">No roles configured</div>' : ''}
           </div>
-          <div style="font-size: 11px; color: #555; margin-top: 8px;">Click to cycle: Inherit (—) → Allow (✓) → Deny (✗)</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">Click to cycle: Inherit (—) → Allow (✓) → Deny (✗)</div>
         </div>
 
         ${canManageChannels ? `
           <div style="display: flex; gap: 8px; justify-content: space-between; margin-top: 8px;">
             ${!isDefault ? `
-              <button type="button" class="form-btn-submit" id="btn-delete-editing-channel" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid #333; color: #888;">
+              <button type="button" class="form-btn-submit" id="btn-delete-editing-channel" style="width: auto; padding: 6px 14px; font-size: 12px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted);">
                 Delete Channel
               </button>
             ` : '<div></div>'}
@@ -542,7 +542,7 @@ export class ServerSettingsModal {
     return `
       <div style="max-width: 860px; display: flex; flex-direction: column; gap: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Server Members (${membersList.length})</h2>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">Server Members (${membersList.length})</h2>
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           ${membersList.map(mId => {
@@ -550,25 +550,25 @@ export class ServerSettingsModal {
             const memberRoles = memberData.roles || [];
             const isMemberOwner = mId === server.ownerId;
             return `
-              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #181818; border: 1px solid #282828; border-radius: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                  <div style="width: 32px; height: 32px; border-radius: 50%; background: #222222; border: 1px solid #333333; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #ffffff;">
+                  <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-input); border: 1px solid var(--border-medium); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-primary);">
                     ${mId.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <span style="font-size: 13px; font-weight: 600; color: #ffffff;">${this.escapeHtml(mId)}</span>
-                    ${isMemberOwner ? '<span style="margin-left: 6px; padding: 1px 6px; font-size: 10px; background: #222222; border: 1px solid #383838; border-radius: 3px; color: #cccccc;">Owner</span>' : ''}
+                    <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">${this.escapeHtml(mId)}</span>
+                    ${isMemberOwner ? '<span style="margin-left: 6px; padding: 1px 6px; font-size: 10px; background: var(--bg-card-hover); border: 1px solid var(--border-medium); border-radius: 3px; color: var(--text-secondary);">Owner</span>' : ''}
                   </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <div style="display: flex; gap: 4px;">
                     ${memberRoles.map(rId => {
                       const rObj = (server.roles || []).find(r => r.id === rId);
-                      return `<span style="padding: 2px 8px; font-size: 11px; background: #222222; border: 1px solid #333333; border-radius: 4px; color: #dddddd;">${this.escapeHtml(rObj ? rObj.name : rId)}</span>`;
+                      return `<span style="padding: 2px 8px; font-size: 11px; background: var(--bg-card-hover); border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-primary);">${this.escapeHtml(rObj ? rObj.name : rId)}</span>`;
                     }).join('')}
                   </div>
                   ${(!isMemberOwner && mId !== currentUserId && canManageServer) ? `
-                    <button type="button" class="form-btn-submit btn-ban-member" data-member-id="${this.escapeHtml(mId)}" style="width: auto; padding: 4px 10px; font-size: 11px; background: transparent; border: 1px solid #383838; color: #888888;">
+                    <button type="button" class="form-btn-submit btn-ban-member" data-member-id="${this.escapeHtml(mId)}" style="width: auto; padding: 4px 10px; font-size: 11px; background: transparent; border: 1px solid var(--border-medium); color: var(--text-muted);">
                       Ban
                     </button>
                   ` : ''}
@@ -584,11 +584,11 @@ export class ServerSettingsModal {
   renderInvitesTab(inviteUrl) {
     return `
       <div style="max-width: 860px; display: flex; flex-direction: column; gap: 20px;">
-        <h2 style="font-size: 18px; font-weight: 700; color: #ffffff;">Invites</h2>
-        <div style="background: #181818; border: 1px solid #282828; border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">Invites</h2>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
           <label class="form-label" style="font-size: 12px;">Server Invite Link</label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" readonly id="invite-url-input" class="form-input" value="${this.escapeHtml(inviteUrl)}" style="background: #111111; color: #cccccc; cursor: text;" />
+            <input type="text" readonly id="invite-url-input" class="form-input" value="${this.escapeHtml(inviteUrl)}" style="background: var(--bg-input); color: var(--text-secondary); cursor: text;" />
             <button type="button" class="form-btn-submit" id="btn-copy-invite-link" style="width: auto; padding: 0 20px; font-size: 12px; white-space: nowrap;">
               ${this.copyFeedback ? 'Copied!' : 'Copy Invite Link'}
             </button>
