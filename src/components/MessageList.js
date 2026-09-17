@@ -148,9 +148,9 @@ export class MessageList {
           else sizeFormatted = Math.max(1, Math.round(fSize / 1024)) + ' KB';
         }
 
-        const isImage = fType.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fName);
-        const isVideo = fType.startsWith('video/') || /\.(mp4|webm|mov|mkv|ogg)$/i.test(fName);
-        const isAudio = fType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac|opus)$/i.test(fName);
+        const isVideo = fType.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(fName);
+        const isAudio = !isVideo && (fType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac|opus)$/i.test(fName));
+        const isImage = !isVideo && !isAudio && (fType.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fName));
         const cachedFile = playFabService.getCachedFile(fId);
 
         let iconSvg = `
@@ -195,10 +195,10 @@ export class MessageList {
                 ${sizeFormatted ? `<span class="discord-file-size">${sizeFormatted}</span>` : ''}
               </div>
               <div style="display: flex; gap: 6px; align-items: center;">
-                ${(isAudio || isVideo) ? `
-                  <button type="button" class="btn-play-media" data-file-id="${this.escapeHtml(fId)}" data-file-type="${isVideo ? 'video' : 'audio'}" style="background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-medium); border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                ${isAudio ? `
+                  <button type="button" class="btn-play-media" data-file-id="${this.escapeHtml(fId)}" data-file-type="audio" style="background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-medium); border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    <span>${isVideo ? 'Play' : 'Play Sound'}</span>
+                    <span>Play Sound</span>
                   </button>
                 ` : ''}
                 <button type="button" class="btn-download-file" data-file-id="${this.escapeHtml(fId)}" data-file-name="${this.escapeHtml(fName)}">
@@ -217,7 +217,7 @@ export class MessageList {
               </div>
             ` : ''}
             ${isVideo ? `
-              <div class="file-video-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; border-radius: 6px; overflow: hidden; background: #000000; ${cachedFile && cachedFile.data ? 'display: block;' : 'display: none;'}">
+              <div class="file-video-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; border-radius: 6px; overflow: hidden; background: #000000; width: 100%; max-width: 480px; display: block;">
                 <video controls preload="metadata" src="${cachedFile && cachedFile.data ? this.escapeHtml(cachedFile.data) : ''}" style="max-width: 100%; max-height: 320px; display: block; width: 100%; border-radius: 4px;"></video>
               </div>
             ` : ''}
@@ -915,6 +915,13 @@ export class MessageList {
         if (cached && cached.data && video) {
           video.src = cached.data;
           previewEl.style.display = 'block';
+        } else {
+          playFabService.downloadFile(fileId).then(fileObj => {
+            if (fileObj && fileObj.data && video) {
+              video.src = fileObj.data;
+              previewEl.style.display = 'block';
+            }
+          }).catch(() => {});
         }
       }
     });

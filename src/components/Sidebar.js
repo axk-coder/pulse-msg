@@ -121,14 +121,38 @@ export class Sidebar {
   }
 
   attachEvents() {
+    const railContainer = this.container.querySelector('.server-rail');
+    railContainer?.addEventListener('click', (e) => {
+      const globalBtn = e.target.closest('#rail-global-btn');
+      if (globalBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        appState.setGlobalChat();
+        appState.toggleMobileSidebar(false);
+        return;
+      }
+      const dmBtn = e.target.closest('#rail-dm-btn');
+      if (dmBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        appState.setActiveDM(null);
+        appState.toggleMobileSidebar(false);
+        return;
+      }
+    });
+
     const dmBtn = this.container.querySelector('#rail-dm-btn');
-    dmBtn?.addEventListener('click', () => {
+    dmBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       appState.setActiveDM(null);
       appState.toggleMobileSidebar(false);
     });
 
     const globalBtn = this.container.querySelector('#rail-global-btn');
-    globalBtn?.addEventListener('click', () => {
+    globalBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       appState.setGlobalChat();
       appState.toggleMobileSidebar(false);
     });
@@ -246,7 +270,7 @@ export class Sidebar {
               <span>Public</span>
             </div>
             <ul class="channel-list">
-              <li class="channel-item active">
+              <li class="channel-item active" id="global-channel-item" style="cursor: pointer;">
                 <div class="channel-item-left">
                   <span class="channel-hash">#</span>
                   <span>global-chat</span>
@@ -255,6 +279,11 @@ export class Sidebar {
             </ul>
           </div>
         `;
+        const gItem = panelScroll.querySelector('#global-channel-item');
+        gItem?.addEventListener('click', () => {
+          appState.setGlobalChat();
+          appState.toggleMobileSidebar(false);
+        });
       }
     } else if (state.activeContext === 'server' && state.activeServer) {
       const server = state.activeServer;
