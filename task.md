@@ -150,7 +150,12 @@
   - Added Favorite GIFs system (`pulse_fav_gifs` localStorage) with dedicated `★ Favs` category tab.
   - Added star (★) toggles on all GIF cards to save and remove favorites.
   - Added `+ Fav URL` button in GIF popover header to add custom GIF links to favorites with label support.
-- [x] **Version 5.9 Release**:
-  - Incremented version to `5.9.0` in `package.json`.
-  - Updated version badges to `5.9` across `Sidebar.js`, `SettingsModal.js`, `LegalModal.js`, `CreditsModal.js`, and `ShortcutsModal.js`.
+- [x] **Member Sidebar Role Grouping & Hierarchy Overhaul**:
+  - Unified member grouping in `MemberList.js` so default members and users without hoisted roles are cleanly grouped under a single `MEMBERS` section, eliminating duplicate `MEMBER` / `MEMBERS` split headers.
+  - Prioritized Server Owner at the top under `OWNER` section with dedicated `★ Owner` badge if no custom hoisted role is assigned.
+  - Enhanced role assignment in `UserProfileModal.js` to match roles by ID or name seamlessly.
+- [x] **Version 6.0 Release**:
+  - Incremented version to `6.0.0` in `package.json`.
+  - Updated version badges to `6.0` across `Sidebar.js`, `SettingsModal.js`, `LegalModal.js`, `CreditsModal.js`, and `ShortcutsModal.js`.
   - Updated `map.txt` with architectural changes.
+

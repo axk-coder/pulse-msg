@@ -164,14 +164,14 @@ export class UserProfileModal {
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="profile-roles-container">
                   ${assignableRoles.length > 0 ? assignableRoles.map(r => {
-                    const isAssigned = assignedRoles.includes(r.id);
+                    const isAssigned = assignedRoles.includes(r.id) || (r.name && assignedRoles.some(a => String(a).toLowerCase() === r.name.toLowerCase()));
                     return `
                       <button type="button" class="role-pill-toggle" data-role-id="${this.escapeHtml(r.id)}" style="padding: 4px 10px; font-size: 11px; border-radius: var(--radius-sm); border: 1px solid ${isAssigned ? 'var(--border-focus)' : 'var(--border-medium)'}; background: ${isAssigned ? 'var(--bg-active)' : 'var(--bg-card)'}; color: ${isAssigned ? 'var(--text-primary)' : 'var(--text-secondary)'}; cursor: pointer;">
                         ${isAssigned ? '✓ ' : '+ '}${this.escapeHtml(r.name)}
                       </button>
                     `;
                   }).join('') : sortedRoles.map(r => {
-                    const isAssigned = assignedRoles.includes(r.id);
+                    const isAssigned = assignedRoles.includes(r.id) || (r.name && assignedRoles.some(a => String(a).toLowerCase() === r.name.toLowerCase()));
                     if (!isAssigned) return '';
                     return `
                       <span style="padding: 4px 10px; font-size: 11px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-secondary);">
@@ -222,11 +222,14 @@ export class UserProfileModal {
         btn.addEventListener('click', async () => {
           const rId = btn.dataset.roleId;
           const sId = server.id || server.serverId;
+          const allRoles = Array.isArray(server.roles) ? server.roles : [];
+          const targetRole = allRoles.find(r => r.id === rId);
           const memberData = (server.members && server.members[this.targetUserId]) ? server.members[this.targetUserId] : { roles: [] };
           let roles = memberData.roles ? memberData.roles.slice() : [];
 
-          if (roles.includes(rId)) {
-            roles = roles.filter(x => x !== rId);
+          const alreadyHas = roles.includes(rId) || (targetRole && roles.some(x => String(x).toLowerCase() === targetRole.name.toLowerCase()));
+          if (alreadyHas) {
+            roles = roles.filter(x => x !== rId && (!targetRole || String(x).toLowerCase() !== targetRole.name.toLowerCase()));
           } else {
             roles.push(rId);
           }

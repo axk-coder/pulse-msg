@@ -229,38 +229,73 @@ export class MemberList {
   renderMembersList(server, memberIds, rolesList) {
     if (!this.listContainer) return;
     const membersMap = server.members || {};
+    const ownerId = server.ownerId || server.id || server.serverId;
 
-    const rolesMap = new Map();
-    rolesList.forEach(r => rolesMap.set(r.id, r));
+    const sortedRoles = Array.isArray(rolesList) ? rolesList.slice().sort((a, b) => (a.position ?? 999) - (b.position ?? 999)) : [];
 
-    let html = '';
+    const isBaseMemberRole = (r) => {
+      if (!r) return true;
+      const id = String(r.id || '').toLowerCase();
+      const name = String(r.name || '').toLowerCase();
+      return id === 'role_member' || id === 'none' || name === 'member' || name === 'members';
+    };
 
-    const grouped = new Map();
-    rolesList.forEach(r => grouped.set(r.id, []));
-    grouped.set('none', []);
+    const isOwnerRole = (r) => {
+      if (!r) return false;
+      const id = String(r.id || '').toLowerCase();
+      const name = String(r.name || '').toLowerCase();
+      return id === 'role_owner' || id === 'owner' || name === 'owner';
+    };
+
+    const hoistedRoles = sortedRoles.filter(r => !isBaseMemberRole(r) && !isOwnerRole(r));
+
+    const groupsMap = new Map();
+    groupsMap.set('owner', { title: 'OWNER', role: { id: 'owner', name: 'Owner' }, members: [] });
+    hoistedRoles.forEach(r => {
+      groupsMap.set(r.id, { title: r.name.toUpperCase(), role: r, members: [] });
+    });
+    groupsMap.set('default_members', { title: 'MEMBERS', role: null, members: [] });
 
     memberIds.forEach(mId => {
       const mem = membersMap[mId] || {};
-      const primaryRoleId = (mem.roles && mem.roles[0]) ? mem.roles[0] : 'none';
-      if (grouped.has(primaryRoleId)) {
-        grouped.get(primaryRoleId).push(mId);
+      const assigned = Array.isArray(mem.roles) ? mem.roles : (typeof mem.roles === 'string' ? [mem.roles] : []);
+      const isOwner = mId === ownerId;
+
+      let matchedRole = null;
+      for (const r of hoistedRoles) {
+        if (assigned.includes(r.id) || (r.name && assigned.some(a => String(a).toLowerCase() === r.name.toLowerCase()))) {
+          matchedRole = r;
+          break;
+        }
+      }
+
+      if (isOwner) {
+        if (matchedRole) {
+          groupsMap.get(matchedRole.id).members.push({ mId, displayRole: matchedRole, isOwner: true });
+        } else {
+          groupsMap.get('owner').members.push({ mId, displayRole: { id: 'owner', name: 'Owner' }, isOwner: true });
+        }
+      } else if (matchedRole) {
+        groupsMap.get(matchedRole.id).members.push({ mId, displayRole: matchedRole, isOwner: false });
       } else {
-        grouped.get('none').push(mId);
+        const baseRole = sortedRoles.find(r => assigned.includes(r.id)) || null;
+        groupsMap.get('default_members').members.push({ mId, displayRole: baseRole, isOwner: false });
       }
     });
 
-    grouped.forEach((ids, roleId) => {
-      if (ids.length === 0) return;
-      const role = rolesMap.get(roleId);
-      const roleName = role ? role.name : 'Members';
+    let html = '';
+
+    groupsMap.forEach((groupData) => {
+      const { title, members } = groupData;
+      if (members.length === 0) return;
 
       html += `
         <div class="member-group-header">
-          <span>${this.escapeHtml(roleName)} (${ids.length})</span>
+          <span>${this.escapeHtml(title)} (${members.length})</span>
         </div>
       `;
 
-      ids.forEach(mId => {
+      members.forEach(({ mId, displayRole, isOwner }) => {
         const profile = this.memberProfiles.get(mId) || { displayName: "Member", avatarUrl: "", presence: "offline", statusMessage: "" };
         const initial = profile.displayName.charAt(0).toUpperCase();
         const isSelf = playFabService.getCurrentUser()?.playFabId === mId;
@@ -275,9 +310,10 @@ export class MemberList {
               <div class="presence-badge-dot dot-${profile.presence || 'offline'}"></div>
             </div>
             <div class="member-info" style="display: flex; flex-direction: column; overflow: hidden;">
-              <div style="display: flex; align-items: center; gap: 4px;">
+              <div style="display: flex; align-items: center; gap: 4px; flex-wrap: nowrap;">
                 <span class="member-name">${this.escapeHtml(profile.displayName)}</span>
-                ${role ? `<span class="member-role-badge">${this.escapeHtml(role.name)}</span>` : ''}
+                ${isOwner ? `<span class="member-role-badge" style="background: #252525; border-color: #555555; color: #ffffff; font-weight: 700;">★ Owner</span>` : ''}
+                ${(!isOwner && displayRole && !isBaseMemberRole(displayRole)) ? `<span class="member-role-badge">${this.escapeHtml(displayRole.name)}</span>` : ''}
               </div>
               ${profile.statusMessage ? `<span class="member-status-message" style="font-size: 11px; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${this.escapeHtml(profile.statusMessage)}</span>` : ''}
             </div>
