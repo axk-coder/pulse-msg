@@ -172,6 +172,10 @@ class StateStore {
     this.notify("navigation");
   }
 
+  setActiveGlobal() {
+    this.setGlobalChat();
+  }
+
   setActiveServer(server) {
     this.state.activeContext = "server";
     this.state.activeServer = server;

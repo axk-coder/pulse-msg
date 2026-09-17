@@ -129,7 +129,7 @@ export class Sidebar {
 
     const globalBtn = this.container.querySelector('#rail-global-btn');
     globalBtn?.addEventListener('click', () => {
-      appState.setActiveGlobal();
+      appState.setGlobalChat();
       appState.toggleMobileSidebar(false);
     });
 

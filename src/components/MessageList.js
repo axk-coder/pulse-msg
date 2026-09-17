@@ -149,33 +149,81 @@ export class MessageList {
         }
 
         const isImage = fType.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fName);
+        const isVideo = fType.startsWith('video/') || /\.(mp4|webm|mov|mkv|ogg)$/i.test(fName);
+        const isAudio = fType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a|aac|flac|opus)$/i.test(fName);
         const cachedFile = playFabService.getCachedFile(fId);
 
+        let iconSvg = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+        `;
+        if (isVideo) {
+          iconSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+          `;
+        } else if (isAudio) {
+          iconSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+          `;
+        } else if (isImage) {
+          iconSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          `;
+        }
+
         embeds.push(`
-          <div class="discord-file-embed" data-file-id="${this.escapeHtml(fId)}">
+          <div class="discord-file-embed" data-file-id="${this.escapeHtml(fId)}" data-file-type="${isVideo ? 'video' : (isAudio ? 'audio' : (isImage ? 'image' : 'file'))}">
             <div class="discord-file-content">
               <div class="discord-file-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
-                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                  <polyline points="13 2 13 9 20 9"></polyline>
-                </svg>
+                ${iconSvg}
               </div>
               <div class="discord-file-info">
                 <span class="discord-file-name" title="${this.escapeHtml(fName)}">${this.escapeHtml(fName)}</span>
                 ${sizeFormatted ? `<span class="discord-file-size">${sizeFormatted}</span>` : ''}
               </div>
-              <button type="button" class="btn-download-file" data-file-id="${this.escapeHtml(fId)}" data-file-name="${this.escapeHtml(fName)}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                <span>Download</span>
-              </button>
+              <div style="display: flex; gap: 6px; align-items: center;">
+                ${(isAudio || isVideo) ? `
+                  <button type="button" class="btn-play-media" data-file-id="${this.escapeHtml(fId)}" data-file-type="${isVideo ? 'video' : 'audio'}" style="background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-medium); border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>${isVideo ? 'Play' : 'Play Sound'}</span>
+                  </button>
+                ` : ''}
+                <button type="button" class="btn-download-file" data-file-id="${this.escapeHtml(fId)}" data-file-name="${this.escapeHtml(fName)}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download</span>
+                </button>
+              </div>
             </div>
             ${isImage ? `
               <div class="file-image-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; max-height: 280px; overflow: hidden; border-radius: 4px; ${cachedFile && cachedFile.data ? 'display: block;' : 'display: none;'}">
                 <img src="${cachedFile && cachedFile.data ? this.escapeHtml(cachedFile.data) : ''}" alt="${this.escapeHtml(fName)}" style="max-width: 100%; max-height: 280px; object-fit: contain; display: block;" />
+              </div>
+            ` : ''}
+            ${isVideo ? `
+              <div class="file-video-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; border-radius: 6px; overflow: hidden; background: #000000; ${cachedFile && cachedFile.data ? 'display: block;' : 'display: none;'}">
+                <video controls preload="metadata" src="${cachedFile && cachedFile.data ? this.escapeHtml(cachedFile.data) : ''}" style="max-width: 100%; max-height: 320px; display: block; width: 100%; border-radius: 4px;"></video>
+              </div>
+            ` : ''}
+            ${isAudio ? `
+              <div class="file-audio-preview" data-file-id="${this.escapeHtml(fId)}" style="margin-top: 8px; width: 100%; ${cachedFile && cachedFile.data ? 'display: block;' : 'display: none;'}">
+                <audio controls preload="none" src="${cachedFile && cachedFile.data ? this.escapeHtml(cachedFile.data) : ''}" style="width: 100%; height: 36px;"></audio>
               </div>
             ` : ''}
           </div>
@@ -238,6 +286,44 @@ export class MessageList {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
               allowfullscreen
             ></iframe>
+          </div>
+        `);
+      }
+    }
+
+    const videoUrlRegex = /https?:\/\/[^\s<>"'`]+?\.(?:mp4|webm|mov|mkv)(?:\?[^\s<>"'`]*)?/gi;
+    let videoUrlMatch;
+    while ((videoUrlMatch = videoUrlRegex.exec(text)) !== null) {
+      const vUrl = videoUrlMatch[0];
+      if (!handledUrls.has(vUrl)) {
+        handledUrls.add(vUrl);
+        if (text.trim() === vUrl.trim()) {
+          escaped = '';
+        } else {
+          escaped = escaped.replace(this.escapeHtml(vUrl), '').trim();
+        }
+        embeds.push(`
+          <div class="discord-media-embed" style="max-width: 480px; border-radius: 6px; overflow: hidden; background: #000000; margin-top: 6px;">
+            <video controls preload="metadata" src="${this.escapeHtml(vUrl)}" style="max-width: 100%; max-height: 320px; display: block; width: 100%; border-radius: 4px;"></video>
+          </div>
+        `);
+      }
+    }
+
+    const audioUrlRegex = /https?:\/\/[^\s<>"'`]+?\.(?:mp3|wav|ogg|m4a|aac|flac)(?:\?[^\s<>"'`]*)?/gi;
+    let audioUrlMatch;
+    while ((audioUrlMatch = audioUrlRegex.exec(text)) !== null) {
+      const aUrl = audioUrlMatch[0];
+      if (!handledUrls.has(aUrl)) {
+        handledUrls.add(aUrl);
+        if (text.trim() === aUrl.trim()) {
+          escaped = '';
+        } else {
+          escaped = escaped.replace(this.escapeHtml(aUrl), '').trim();
+        }
+        embeds.push(`
+          <div class="discord-media-embed" style="max-width: 440px; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: 8px; padding: 8px 12px; margin-top: 6px;">
+            <audio controls preload="none" src="${this.escapeHtml(aUrl)}" style="width: 100%; height: 36px;"></audio>
           </div>
         `);
       }
@@ -763,6 +849,51 @@ export class MessageList {
       });
     });
 
+    this.streamEl.querySelectorAll('.btn-play-media').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const fileId = btn.getAttribute('data-file-id');
+        const fileType = btn.getAttribute('data-file-type');
+        const card = btn.closest('.discord-file-embed');
+        if (!fileId || !card) return;
+
+        const origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span>Loading...</span>`;
+
+        try {
+          const fileObj = await playFabService.downloadFile(fileId);
+          if (fileObj && fileObj.data) {
+            btn.style.display = 'none';
+            if (fileType === 'audio') {
+              let audioBox = card.querySelector('.file-audio-preview');
+              if (audioBox) {
+                audioBox.style.display = 'block';
+                const audio = audioBox.querySelector('audio');
+                if (audio) {
+                  audio.src = fileObj.data;
+                  audio.play().catch(() => {});
+                }
+              }
+            } else if (fileType === 'video') {
+              let videoBox = card.querySelector('.file-video-preview');
+              if (videoBox) {
+                videoBox.style.display = 'block';
+                const video = videoBox.querySelector('video');
+                if (video) {
+                  video.src = fileObj.data;
+                  video.play().catch(() => {});
+                }
+              }
+            }
+          }
+        } catch (err) {
+          btn.disabled = false;
+          btn.innerHTML = origHtml;
+        }
+      });
+    });
+
     this.streamEl.querySelectorAll('.file-image-preview').forEach(previewEl => {
       const fileId = previewEl.getAttribute('data-file-id');
       const img = previewEl.querySelector('img');
@@ -773,6 +904,30 @@ export class MessageList {
             previewEl.style.display = 'block';
           }
         }).catch(() => {});
+      }
+    });
+
+    this.streamEl.querySelectorAll('.file-video-preview').forEach(previewEl => {
+      const fileId = previewEl.getAttribute('data-file-id');
+      const video = previewEl.querySelector('video');
+      if (fileId && (!video || !video.getAttribute('src'))) {
+        const cached = playFabService.getCachedFile(fileId);
+        if (cached && cached.data && video) {
+          video.src = cached.data;
+          previewEl.style.display = 'block';
+        }
+      }
+    });
+
+    this.streamEl.querySelectorAll('.file-audio-preview').forEach(previewEl => {
+      const fileId = previewEl.getAttribute('data-file-id');
+      const audio = previewEl.querySelector('audio');
+      if (fileId && (!audio || !audio.getAttribute('src'))) {
+        const cached = playFabService.getCachedFile(fileId);
+        if (cached && cached.data && audio) {
+          audio.src = cached.data;
+          previewEl.style.display = 'block';
+        }
       }
     });
 

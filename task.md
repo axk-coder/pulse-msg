@@ -131,6 +131,11 @@
   - Added `Ctrl + K` / `Cmd + K` global hotkey to instantly focus the search bar.
 - [x] **Favicon Asset & Inline SVG Configuration**:
   - Added embedded data URI SVG favicon in `index.html` and static fallback files `public/favicon.svg` and `public/favicon.ico` to eliminate browser 404 resource errors.
-- [x] **File Upload Chunk Timeout Resolution & Live Progress Toast**:
-  - Resolved CloudScript execution timeout on final chunk by buffering chunks in PlayFab UserInternalData and executing exactly 1 GitHub API commit on finalization instead of 28 sequential HTTP calls.
-  - Added real-time chunk progress counter `(chunk/total)` to the file upload status toast in `MessageInput.js`.
+- [x] **Video and Audio Embeds & Interactive Player Support**:
+  - Expanded `MessageList.js` to render responsive HTML5 `<video>` players for video files (`.mp4`, `.webm`, `.mov`, `.mkv`) and direct web video URLs.
+  - Added HTML5 `<audio>` player and 1-click `▶ Play Sound` / `▶ Play` button for audio files (`.mp3`, `.wav`, `.ogg`, `.m4a`, `.aac`, `.flac`) and web audio streams.
+  - Added specific SVG icons for video and audio attachments.
+- [x] **Global Chat Button Navigation Fix**:
+  - Standardized `#rail-global-btn` click handler in `Sidebar.js` to invoke `appState.setGlobalChat()`.
+  - Added `setActiveGlobal()` alias in `src/services/state.js` ensuring compatibility with any legacy navigation calls.
+
