@@ -376,7 +376,7 @@ class PlayFabService {
     } catch {}
 
     try {
-      const cloudRes = await this.executeScript("getUserProfile", { userId: playFabId });
+      const cloudRes = await this.executeScript("getUserProfile", { userId: playFabId }, { silent: true });
       if (cloudRes && cloudRes.success && cloudRes.profile && (cloudRes.profile.displayName || cloudRes.profile.avatarUrl)) {
         const userData = {
           displayName: cloudRes.profile.displayName || "Member",
@@ -395,7 +395,7 @@ class PlayFabService {
   async getFriendsList() {
     if (!this.sessionTicket) return [];
     try {
-      const cloudRes = await this.executeScript("getFriends", {});
+      const cloudRes = await this.executeScript("getFriends", {}, { silent: true });
       if (cloudRes && cloudRes.success && Array.isArray(cloudRes.friends)) {
         cloudRes.friends.forEach(f => {
           this.userCache.set(f.playFabId, {
@@ -450,7 +450,7 @@ class PlayFabService {
 
   async getFriendRequests() {
     if (!this.sessionTicket) return [];
-    const res = await this.executeScript("getFriendRequests", {});
+    const res = await this.executeScript("getFriendRequests", {}, { silent: true });
     return (res && res.success && Array.isArray(res.requests)) ? res.requests : [];
   }
 
@@ -486,10 +486,13 @@ class PlayFabService {
     return await this.executeScript("leaveServer", { serverId });
   }
 
-  async executeScript(functionName, functionParameter = {}) {
+  async executeScript(functionName, functionParameter = {}, options = {}) {
     if (!this.sessionTicket) throw new Error("Not authenticated");
-    this.pendingRequests++;
-    appState.setCloudScriptPending(true);
+    const isSilent = Boolean(options && options.silent);
+    if (!isSilent) {
+      this.pendingRequests++;
+      appState.setCloudScriptPending(true);
+    }
     try {
       const payload = {
         FunctionName: functionName,
@@ -502,15 +505,17 @@ class PlayFabService {
       }
       return { success: false };
     } finally {
-      this.pendingRequests = Math.max(0, this.pendingRequests - 1);
-      if (this.pendingRequests === 0) {
-        appState.setCloudScriptPending(false);
+      if (!isSilent) {
+        this.pendingRequests = Math.max(0, this.pendingRequests - 1);
+        if (this.pendingRequests === 0) {
+          appState.setCloudScriptPending(false);
+        }
       }
     }
   }
 
-  async getMessages(target) {
-    return await this.executeScript("getMessages", target);
+  async getMessages(target, silent = true) {
+    return await this.executeScript("getMessages", target, { silent });
   }
 
   async sendMessage(target, text) {
@@ -542,8 +547,8 @@ class PlayFabService {
     return await this.executeScript("deleteMessage", payload);
   }
 
-  async getUserServers() {
-    const res = await this.executeScript("getUserServers", {});
+  async getUserServers(silent = true) {
+    const res = await this.executeScript("getUserServers", {}, { silent });
     return res.servers || [];
   }
 
@@ -551,8 +556,8 @@ class PlayFabService {
     return await this.executeScript("createServer", { name, iconUrl });
   }
 
-  async getServer(serverId) {
-    return await this.executeScript("getServer", { serverId });
+  async getServer(serverId, silent = true) {
+    return await this.executeScript("getServer", { serverId }, { silent });
   }
 
   async saveServer(serverId, updateData) {
@@ -563,8 +568,8 @@ class PlayFabService {
     return await this.executeScript("joinServer", { serverId });
   }
 
-  async getUserDMs() {
-    const res = await this.executeScript("getUserDMs", {});
+  async getUserDMs(silent = true) {
+    const res = await this.executeScript("getUserDMs", {}, { silent });
     return res.dms || [];
   }
 
@@ -580,8 +585,8 @@ class PlayFabService {
     return await this.executeScript("manageGroupDM", Object.assign({ dmId, action }, extraParams));
   }
 
-  async getGroupMeta(dmId) {
-    return await this.executeScript("getGroupMeta", { dmId });
+  async getGroupMeta(dmId, silent = true) {
+    return await this.executeScript("getGroupMeta", { dmId }, { silent });
   }
 }
 
