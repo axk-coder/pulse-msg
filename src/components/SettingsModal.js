@@ -217,25 +217,22 @@ export class SettingsModal {
                   </div>
                   <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 260px; overflow-y: auto; padding-right: 2px;">
                     ${[
-                      { key: 'onyx', name: 'Onyx Dark', desc: 'Neutral dark mode', preview: '#121212', accent: '#f5f5f5', border: '#262626' },
-                      { key: 'amoled', name: 'Midnight Pitch', desc: 'Pure black AMOLED', preview: '#000000', accent: '#ffffff', border: '#282828' },
-                      { key: 'blurple', name: 'Blurple Velvet', desc: 'Discord classic indigo', preview: '#1e2030', accent: '#5865f2', border: '#444a6e' },
-                      { key: 'cyberpunk', name: 'Cyberpunk Neon', desc: 'Night city electric cyan', preview: '#131024', accent: '#00f0ff', border: '#4a3c8a' },
-                      { key: 'emerald', name: 'Emerald Matrix', desc: 'Forest cyber green', preview: '#0d1c16', accent: '#10b981', border: '#2a5544' },
-                      { key: 'crimson', name: 'Crimson Eclipse', desc: 'Obsidian & ruby', preview: '#1a0d12', accent: '#f43f5e', border: '#522939' },
-                      { key: 'sapphire', name: 'Midnight Sapphire', desc: 'Deep ocean blue', preview: '#0e192c', accent: '#38bdf8', border: '#2a4c7e' },
-                      { key: 'amethyst', name: 'Royal Amethyst', desc: 'Twilight purple', preview: '#171026', accent: '#a855f7', border: '#473377' },
-                      { key: 'amber', name: 'Solar Amber', desc: 'Warm ember glow', preview: '#1c150c', accent: '#f59e0b', border: '#574226' },
-                      { key: 'slate', name: 'Slate Monochrome', desc: 'Matte dark slate', preview: '#15181a', accent: '#f8f9fa', border: '#3c444b' }
+                      { key: 'onyx', name: 'Dark', preview: '#121212', accent: '#f5f5f5', border: '#262626' },
+                      { key: 'amoled', name: 'Black', preview: '#000000', accent: '#ffffff', border: '#282828' },
+                      { key: 'blurple', name: 'Blurple', preview: '#1e2030', accent: '#5865f2', border: '#444a6e' },
+                      { key: 'cyberpunk', name: 'Cyan', preview: '#131024', accent: '#00f0ff', border: '#4a3c8a' },
+                      { key: 'emerald', name: 'Green', preview: '#0d1c16', accent: '#10b981', border: '#2a5544' },
+                      { key: 'crimson', name: 'Red', preview: '#1a0d12', accent: '#f43f5e', border: '#522939' },
+                      { key: 'sapphire', name: 'Blue', preview: '#0e192c', accent: '#38bdf8', border: '#2a4c7e' },
+                      { key: 'amethyst', name: 'Purple', preview: '#171026', accent: '#a855f7', border: '#473377' },
+                      { key: 'amber', name: 'Amber', preview: '#1c150c', accent: '#f59e0b', border: '#574226' },
+                      { key: 'slate', name: 'Slate', preview: '#15181a', accent: '#f8f9fa', border: '#3c444b' }
                     ].map(t => `
                       <button type="button" class="theme-select-btn ${this.currentTheme === t.key ? 'active' : ''}" data-theme-key="${t.key}" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius-sm); border: 1px solid ${this.currentTheme === t.key ? (t.accent || '#ffffff') : 'var(--border-medium)'}; background: ${t.preview}; cursor: pointer; text-align: left; transition: all 0.15s ease;">
                         <div style="width: 18px; height: 18px; border-radius: 50%; background: ${t.preview}; border: 2px solid ${t.accent || t.border}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                           ${this.currentTheme === t.key ? `<div style="width: 6px; height: 6px; border-radius: 50%; background: ${t.accent || '#ffffff'};"></div>` : ''}
                         </div>
-                        <div style="display: flex; flex-direction: column; overflow: hidden;">
-                          <span style="font-size: 12px; font-weight: 600; color: #ffffff;">${t.name}</span>
-                          <span style="font-size: 10px; color: ${t.accent}; opacity: 0.85;">${t.desc}</span>
-                        </div>
+                        <span style="font-size: 13px; font-weight: 600; color: #ffffff;">${t.name}</span>
                       </button>
                     `).join('')}
                   </div>
