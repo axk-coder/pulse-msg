@@ -87,6 +87,11 @@
   - Configured `playfabService.executeScript` with silent execution flag for background polling tasks.
   - Suppressed loading animations during periodic polling checks (`getMessages`, `getUserDMs`, `getUserServers`, `getFriends`, `getFriendRequests`, profile queries).
   - Preserved loading indicator for user-initiated mutations and explicit actions.
+- [x] **Channel Reordering & Positional Order Changing**:
+  - Added Move Up and Move Down buttons for each channel in `Sidebar.js` for users with `manage_channels`.
+  - Added Move Up and Move Down controls in the Server Settings Channels tab in `ServerSettingsModal.js`.
+  - Updated `backend/cloudscript.js` (`handlers.getServer`, `handlers.saveServer`) to preserve and persist custom channel order in server metadata.
+
 
 
 

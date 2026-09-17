@@ -431,13 +431,33 @@ export class ServerSettingsModal {
 
         <div style="display: flex; gap: 16px; min-height: 300px;">
           <div style="width: 220px; display: flex; flex-direction: column; gap: 4px; border-right: 1px solid #282828; padding-right: 16px;">
-            ${channels.map(ch => {
+            ${channels.map((ch, idx) => {
               const isActive = this.editingChannelId === ch.id;
               return `
-                <button type="button" class="btn-select-channel" data-channel-id="${this.escapeHtml(ch.id)}" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; font-size: 13px; font-weight: ${isActive ? '600' : '500'}; border-radius: 4px; border: 1px solid ${isActive ? '#444' : 'transparent'}; background: ${isActive ? '#222' : 'transparent'}; color: ${isActive ? '#fff' : '#bbb'}; text-align: left; cursor: pointer;">
-                  <span style="color: #555; font-size: 15px;">#</span>
-                  <span>${this.escapeHtml(ch.name || ch.id)}</span>
-                </button>
+                <div style="display: flex; align-items: center; gap: 4px; width: 100%; border-radius: 4px; background: ${isActive ? '#222' : 'transparent'}; border: 1px solid ${isActive ? '#444' : 'transparent'}; padding-right: 4px;">
+                  <button type="button" class="btn-select-channel" data-channel-id="${this.escapeHtml(ch.id)}" style="display: flex; align-items: center; gap: 8px; flex: 1; padding: 8px 10px; font-size: 13px; font-weight: ${isActive ? '600' : '500'}; background: transparent; border: none; color: ${isActive ? '#fff' : '#bbb'}; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <span style="color: #555; font-size: 15px;">#</span>
+                    <span>${this.escapeHtml(ch.name || ch.id)}</span>
+                  </button>
+                  ${canManageChannels ? `
+                    <div style="display: flex; align-items: center; gap: 2px;">
+                      ${idx > 0 ? `
+                        <button type="button" class="icon-btn btn-settings-ch-up" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Up" style="padding: 2px; color: #888;">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                          </svg>
+                        </button>
+                      ` : ''}
+                      ${idx < channels.length - 1 ? `
+                        <button type="button" class="icon-btn btn-settings-ch-down" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Down" style="padding: 2px; color: #888;">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </button>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+                </div>
               `;
             }).join('')}
             ${channels.length === 0 ? '<div style="font-size: 13px; color: #555; padding: 8px;">No channels</div>' : ''}
@@ -852,6 +872,50 @@ export class ServerSettingsModal {
         this.error = err.message;
         this.render();
       }
+    });
+
+    const reorderSettingsChannel = async (targetId, direction) => {
+      const state = appState.getState();
+      const server = state.activeServer;
+      if (!server || !this.canManageChannels) return;
+      const sId = server.id || server.serverId;
+      const currentList = Array.isArray(server.channels) ? [...server.channels] : [];
+      const idx = currentList.findIndex(c => (typeof c === 'object' ? c.id : c) === targetId);
+      if (idx === -1) return;
+      const targetIndex = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIndex < 0 || targetIndex >= currentList.length) return;
+
+      const temp = currentList[idx];
+      currentList[idx] = currentList[targetIndex];
+      currentList[targetIndex] = temp;
+
+      const merged = Object.assign({}, server, { channels: currentList });
+      this.updateServerState(merged);
+      this.render();
+
+      try {
+        const res = await playFabService.saveServer(sId, { channels: currentList });
+        if (res && res.server) {
+          this.updateServerState(res.server);
+          if (this.callbacks.onServerUpdated) this.callbacks.onServerUpdated();
+        }
+      } catch {}
+    };
+
+    this.container.querySelectorAll('.btn-settings-ch-up').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const chId = btn.getAttribute('data-channel-id');
+        if (chId) reorderSettingsChannel(chId, 'up');
+      });
+    });
+
+    this.container.querySelectorAll('.btn-settings-ch-down').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const chId = btn.getAttribute('data-channel-id');
+        if (chId) reorderSettingsChannel(chId, 'down');
+      });
     });
 
     this.container.querySelectorAll('.btn-select-channel').forEach(btn => {

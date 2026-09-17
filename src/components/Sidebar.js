@@ -301,7 +301,7 @@ export class Sidebar {
               ` : ''}
             </div>
             <ul class="channel-list">
-              ${visibleChannels.map(ch => `
+              ${visibleChannels.map((ch, chIdx) => `
                 <li class="channel-item ${state.activeChannelId === ch.id ? 'active' : ''}" data-channel-id="${this.escapeHtml(ch.id)}" style="display: flex; align-items: center; justify-content: space-between;">
                   <div class="channel-item-left" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     <span class="channel-hash">#</span>
@@ -309,6 +309,20 @@ export class Sidebar {
                   </div>
                   <div style="display: flex; align-items: center; gap: 2px;">
                     ${canManageChannels ? `
+                      ${chIdx > 0 ? `
+                        <button type="button" class="icon-btn btn-channel-up-mini" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Up" style="opacity: 0.6; padding: 2px;">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                          </svg>
+                        </button>
+                      ` : ''}
+                      ${chIdx < visibleChannels.length - 1 ? `
+                        <button type="button" class="icon-btn btn-channel-down-mini" data-channel-id="${this.escapeHtml(ch.id)}" title="Move Channel Down" style="opacity: 0.6; padding: 2px;">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </button>
+                      ` : ''}
                       <button type="button" class="icon-btn btn-channel-settings-mini" data-channel-id="${this.escapeHtml(ch.id)}" title="Channel Settings & Permissions" style="opacity: 0.6; padding: 2px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
                           <circle cx="12" cy="12" r="3"></circle>
@@ -337,6 +351,47 @@ export class Sidebar {
           if (this.callbacks.onOpenServerSettingsModal) {
             this.callbacks.onOpenServerSettingsModal('channels', { createChannel: true });
           }
+        });
+
+        const reorderChannel = async (targetId, direction) => {
+          const currentList = Array.isArray(server.channels) ? [...server.channels] : [];
+          const idx = currentList.findIndex(c => (typeof c === 'object' ? c.id : c) === targetId);
+          if (idx === -1) return;
+          const targetIndex = direction === 'up' ? idx - 1 : idx + 1;
+          if (targetIndex < 0 || targetIndex >= currentList.length) return;
+
+          const temp = currentList[idx];
+          currentList[idx] = currentList[targetIndex];
+          currentList[targetIndex] = temp;
+
+          const current = appState.getState().activeServer;
+          appState.setActiveServer({ ...current, channels: currentList });
+
+          try {
+            const res = await playFabService.saveServer(sId, { channels: currentList });
+            if (res && res.server) {
+              const merged = Object.assign({}, current, res.server, { channels: res.server.channels || currentList });
+              appState.setActiveServer(merged);
+            }
+          } catch {}
+        };
+
+        panelScroll.querySelectorAll('.btn-channel-up-mini').forEach(upBtn => {
+          upBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!canManageChannels) return;
+            const chId = upBtn.getAttribute('data-channel-id');
+            if (chId) reorderChannel(chId, 'up');
+          });
+        });
+
+        panelScroll.querySelectorAll('.btn-channel-down-mini').forEach(downBtn => {
+          downBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!canManageChannels) return;
+            const chId = downBtn.getAttribute('data-channel-id');
+            if (chId) reorderChannel(chId, 'down');
+          });
         });
 
         panelScroll.querySelectorAll('.btn-channel-settings-mini').forEach(setBtn => {
@@ -372,7 +427,7 @@ export class Sidebar {
         const chItems = panelScroll.querySelectorAll('.channel-item');
         chItems.forEach(item => {
           item.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-delete-channel-mini')) return;
+            if (e.target.closest('.icon-btn')) return;
             const chId = item.getAttribute('data-channel-id');
             if (chId) {
               appState.setActiveChannel(chId);
