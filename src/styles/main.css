@@ -1149,7 +1149,7 @@ html, body {
   width: 72px;
   min-width: 72px;
   height: 100%;
-  background: #0d0d0d;
+  background: var(--bg-primary);
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -1171,9 +1171,9 @@ html, body {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #181818;
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  color: #ffffff;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1186,15 +1186,16 @@ html, body {
 
 .server-rail-btn:hover {
   border-radius: 16px;
-  background: #242424;
+  background: var(--bg-card-hover);
   border-color: var(--border-medium);
+  color: var(--text-primary);
 }
 
 .server-rail-btn.active {
   border-radius: 16px;
-  background: #f5f5f5;
-  color: #0a0a0a;
-  border-color: #ffffff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--border-focus);
 }
 
 .rail-divider {
@@ -1212,9 +1213,9 @@ html, body {
 }
 
 .rail-add-btn:hover {
-  border-color: #ffffff;
-  color: #ffffff;
-  background: #181818;
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+  background: var(--bg-card);
 }
 
 .sidebar-subpanel {
