@@ -307,7 +307,8 @@ html, body {
 .sidebar-footer-links {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 4px;
   padding-top: 6px;
   border-top: 1px solid var(--border-subtle);
 }
@@ -316,15 +317,25 @@ html, body {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
+  padding: 1px 2px;
+  border-radius: 3px;
+  line-height: 1.2;
 }
 
 .footer-link-btn:hover {
   color: var(--text-primary);
   text-decoration: underline;
+}
+
+.footer-version-tag {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .icon-btn {

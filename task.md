@@ -175,4 +175,9 @@
   - Added dedicated "Cloak & Panic" tab in `SettingsModal.js` with Tab Cloaking dropdown, Panic Key Trigger, Panic Redirect Destination, and "Open in about:blank Frame" launcher.
   - Initialized cloak persistence on startup in `main.js`.
   - Updated `map.txt`.
-
+- [x] **Fix Sidebar Footer Version Layout & Deploy**:
+  - Enabled flex wrapping and compact padding in `.sidebar-footer-links` and added `.footer-version-tag` styles in `src/styles/main.css`.
+  - Updated `src/components/Sidebar.js` to ensure the version tag `6.0` is always visible and never cut off or pushed off-screen.
+  - Built and verified production bundle with `npm run build`.
+  - Deployed updates to GitHub Pages via `./deploy.sh`.
+  - Updated `map.txt`.
