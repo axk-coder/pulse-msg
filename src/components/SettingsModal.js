@@ -1,6 +1,7 @@
 import { playFabService } from '../services/playfab.js';
 import { appState } from '../services/state.js';
 import { soundSynth } from '../services/soundEffects.js';
+import { CLOAK_PRESETS, applyCloak, openAboutBlank } from '../services/cloak.js';
 
 export class SettingsModal {
   constructor(container, { onLogout, onProfileUpdated, onOpenLegal, onOpenCredits }) {
@@ -9,8 +10,9 @@ export class SettingsModal {
     this.isOpen = false;
     this.tab = 'profile';
     this.currentTheme = localStorage.getItem('pulse_theme') || 'onyx';
-    this.panicKey = localStorage.getItem('pulse_panic_key') || '';
-    this.panicUrl = localStorage.getItem('pulse_panic_url') || 'https://www.google.com';
+    this.cloakPreset = localStorage.getItem('pulse_cloak_preset') || 'none';
+    this.panicKey = localStorage.getItem('pulse_panic_key') || '`';
+    this.panicUrl = localStorage.getItem('pulse_panic_url') || 'https://google.com';
     this.isLoading = false;
     this.message = null;
     this.error = null;
@@ -55,11 +57,12 @@ export class SettingsModal {
           </div>
 
           <div class="modal-body">
-            <div class="auth-tabs" style="margin-bottom: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
-              <button type="button" class="auth-tab ${this.tab === 'profile' ? 'active' : ''}" id="tab-set-profile" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Profile</button>
-              <button type="button" class="auth-tab ${this.tab === 'account' ? 'active' : ''}" id="tab-set-account" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Account</button>
-              <button type="button" class="auth-tab ${this.tab === 'preferences' ? 'active' : ''}" id="tab-set-pref" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Preferences</button>
-              <button type="button" class="auth-tab ${this.tab === 'legal' ? 'active' : ''}" id="tab-set-legal" style="padding: 8px 4px; font-size: 12px; justify-content: center;">Policies</button>
+            <div class="auth-tabs" style="margin-bottom: 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
+              <button type="button" class="auth-tab ${this.tab === 'profile' ? 'active' : ''}" id="tab-set-profile" style="padding: 8px 2px; font-size: 11px; justify-content: center;">Profile</button>
+              <button type="button" class="auth-tab ${this.tab === 'account' ? 'active' : ''}" id="tab-set-account" style="padding: 8px 2px; font-size: 11px; justify-content: center;">Account</button>
+              <button type="button" class="auth-tab ${this.tab === 'preferences' ? 'active' : ''}" id="tab-set-pref" style="padding: 8px 2px; font-size: 11px; justify-content: center;">Appearance</button>
+              <button type="button" class="auth-tab ${this.tab === 'cloak' ? 'active' : ''}" id="tab-set-cloak" style="padding: 8px 2px; font-size: 11px; justify-content: center;">Cloak & Panic</button>
+              <button type="button" class="auth-tab ${this.tab === 'legal' ? 'active' : ''}" id="tab-set-legal" style="padding: 8px 2px; font-size: 11px; justify-content: center;">Policies</button>
             </div>
 
             ${this.message ? `
@@ -243,42 +246,53 @@ export class SettingsModal {
                     `).join('')}
                   </div>
                 </div>
+              </div>
+            ` : ''}
 
-                <div style="padding: 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 12px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 14px; font-weight: 600; color: #ffffff;">Quick Redirect Keybind</span>
-                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Navigation</span>
-                  </div>
-                  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
-                    <div class="form-group" style="margin: 0;">
-                      <label class="form-label" for="set-panic-key" style="font-size: 11px;">Trigger Key</label>
-                      <input
-                        type="text"
-                        id="set-panic-key"
-                        class="form-input"
-                        placeholder="e.g. Escape or ~"
-                        value="${this.escapeHtml(this.panicKey || '')}"
-                        maxlength="15"
-                        style="font-size: 12px; font-family: var(--font-mono);"
-                      />
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                      <label class="form-label" for="set-panic-url" style="font-size: 11px;">Target URL</label>
-                      <input
-                        type="text"
-                        id="set-panic-url"
-                        class="form-input"
-                        placeholder="https://www.google.com"
-                        value="${this.escapeHtml(this.panicUrl || 'https://www.google.com')}"
-                        maxlength="300"
-                        style="font-size: 12px; font-family: var(--font-mono);"
-                      />
-                    </div>
-                  </div>
-                  <button type="button" class="form-btn-submit" id="set-save-panic-btn" style="margin: 0; padding: 8px; font-size: 12px;">
-                    Save Keybind Settings
-                  </button>
+            ${this.tab === 'cloak' ? `
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label" for="set-cloak-preset" style="font-size: 12px; font-weight: 700; color: #ffffff;">Tab Cloaking</label>
+                  <select id="set-cloak-preset" class="form-input" style="background: var(--bg-card); color: #ffffff; border: 1px solid var(--border-medium); cursor: pointer; padding: 10px 12px; font-size: 13px;">
+                    ${CLOAK_PRESETS.map(p => `
+                      <option value="${p.key}" ${this.cloakPreset === p.key ? 'selected' : ''}>${p.name}</option>
+                    `).join('')}
+                  </select>
                 </div>
+
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label" for="set-panic-key" style="font-size: 12px; font-weight: 700; color: #ffffff;">Panic Key Trigger</label>
+                  <input
+                    type="text"
+                    id="set-panic-key"
+                    class="form-input"
+                    placeholder="e.g. \` or Escape"
+                    value="${this.escapeHtml(this.panicKey || '')}"
+                    maxlength="15"
+                    style="font-size: 13px; font-family: var(--font-mono); padding: 10px 12px;"
+                  />
+                </div>
+
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label" for="set-panic-url" style="font-size: 12px; font-weight: 700; color: #ffffff;">Panic Redirect Destination</label>
+                  <input
+                    type="text"
+                    id="set-panic-url"
+                    class="form-input"
+                    placeholder="https://google.com"
+                    value="${this.escapeHtml(this.panicUrl || 'https://google.com')}"
+                    maxlength="300"
+                    style="font-size: 13px; font-family: var(--font-mono); padding: 10px 12px;"
+                  />
+                </div>
+
+                <button type="button" class="form-btn-submit" id="set-save-panic-btn" style="padding: 10px; font-size: 13px; margin-top: 4px;">
+                  Save Panic Settings
+                </button>
+
+                <button type="button" class="form-btn-submit" id="btn-open-about-blank" style="background: transparent; border: 1px solid var(--border-medium); color: #ffffff; padding: 10px; font-size: 13px;">
+                  Open in about:blank Frame
+                </button>
               </div>
             ` : ''}
 
@@ -295,6 +309,9 @@ export class SettingsModal {
                   </button>
                   <button type="button" class="form-btn-submit" id="set-open-terms-btn" style="background: var(--bg-card); border: 1px solid var(--border-medium); color: #ffffff; text-align: left; justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
                     View Terms of Service
+                  </button>
+                  <button type="button" class="form-btn-submit" id="set-open-copyright-btn" style="background: var(--bg-card); border: 1px solid var(--border-medium); color: #ffffff; text-align: left; justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
+                    View Copyright
                   </button>
                   <button type="button" class="form-btn-submit" id="set-open-credits-btn" style="background: var(--bg-card); border: 1px solid var(--border-medium); color: #ffffff; text-align: left; justify-content: flex-start; padding: 10px 14px; font-size: 13px;">
                     View Credits
@@ -338,6 +355,14 @@ export class SettingsModal {
     const tabPref = this.container.querySelector('#tab-set-pref');
     tabPref?.addEventListener('click', () => {
       this.tab = 'preferences';
+      this.error = null;
+      this.message = null;
+      this.render();
+    });
+
+    const tabCloak = this.container.querySelector('#tab-set-cloak');
+    tabCloak?.addEventListener('click', () => {
+      this.tab = 'cloak';
       this.error = null;
       this.message = null;
       this.render();
@@ -527,19 +552,29 @@ export class SettingsModal {
 
     const savePanicBtn = this.container.querySelector('#set-save-panic-btn');
     savePanicBtn?.addEventListener('click', () => {
+      const cloakSelect = this.container.querySelector('#set-cloak-preset');
       const keyInput = this.container.querySelector('#set-panic-key');
       const urlInput = this.container.querySelector('#set-panic-url');
+      const cloakVal = cloakSelect ? cloakSelect.value : 'none';
       const keyVal = keyInput ? keyInput.value.trim() : '';
-      let urlVal = urlInput ? urlInput.value.trim() : 'https://www.google.com';
+      let urlVal = urlInput ? urlInput.value.trim() : 'https://google.com';
       if (urlVal && !urlVal.startsWith('http://') && !urlVal.startsWith('https://')) {
         urlVal = 'https://' + urlVal;
       }
+      this.cloakPreset = cloakVal;
       this.panicKey = keyVal;
       this.panicUrl = urlVal;
+      localStorage.setItem('pulse_cloak_preset', cloakVal);
       localStorage.setItem('pulse_panic_key', keyVal);
       localStorage.setItem('pulse_panic_url', urlVal);
-      this.message = keyVal ? `Redirect keybind set to "${keyVal}"` : 'Redirect keybind disabled';
+      applyCloak(cloakVal);
+      this.message = 'Cloak and panic settings saved successfully';
       this.render();
+    });
+
+    const openAboutBlankBtn = this.container.querySelector('#btn-open-about-blank');
+    openAboutBlankBtn?.addEventListener('click', () => {
+      openAboutBlank();
     });
 
     const openPrivacyBtn = this.container.querySelector('#set-open-privacy-btn');
@@ -555,6 +590,14 @@ export class SettingsModal {
       this.close();
       if (this.callbacks.onOpenLegal) {
         this.callbacks.onOpenLegal('terms');
+      }
+    });
+
+    const openCopyrightBtn = this.container.querySelector('#set-open-copyright-btn');
+    openCopyrightBtn?.addEventListener('click', () => {
+      this.close();
+      if (this.callbacks.onOpenLegal) {
+        this.callbacks.onOpenLegal('copyright');
       }
     });
 

@@ -16,6 +16,7 @@ import { SettingsModal } from './components/SettingsModal.js';
 import { LegalModal } from './components/LegalModal.js';
 import { CreditsModal } from './components/CreditsModal.js';
 import { ShortcutsModal } from './components/ShortcutsModal.js';
+import { applyCloak } from './services/cloak.js';
 
 class PulseApp {
   constructor() {
@@ -27,6 +28,9 @@ class PulseApp {
   async init() {
     const savedTheme = localStorage.getItem('pulse_theme') || 'onyx';
     document.documentElement.setAttribute('data-theme', savedTheme);
+
+    const savedCloak = localStorage.getItem('pulse_cloak_preset') || 'none';
+    applyCloak(savedCloak);
 
     this.root.innerHTML = `
       <div class="cloud-loading-bar" id="cloud-loading-bar"></div>
@@ -90,11 +94,20 @@ class PulseApp {
         this.mainLayout.style.display = 'none';
         this.banModal.open(banData);
       },
+      onLogout: () => {
+        this.onAuthChanged();
+      },
       onOpenLegal: (tab) => {
         if (tab === 'credits') this.creditsModal.open();
         else this.legalModal.open(tab);
       }
     });
+
+    playFabService.onSessionExpired = () => {
+      pollingEngine.stop();
+      this.mainLayout.style.display = 'none';
+      this.authModal.open('expired');
+    };
 
     this.serverModal = new ServerModal(serverModalContainer, {
       onServerCreated: () => {
@@ -197,17 +210,27 @@ class PulseApp {
     });
 
     let authed = playFabService.isAuthenticated();
-    if (!authed) {
-      authed = await playFabService.tryAutoLogin();
-    }
-
     if (authed) {
-      this.mainLayout.style.display = 'flex';
-      await this.bootstrapData();
-      pollingEngine.start();
+      const isValid = await playFabService.validateSession();
+      if (!isValid) {
+        this.mainLayout.style.display = 'none';
+        this.authModal.open('expired');
+        authed = false;
+      } else {
+        this.mainLayout.style.display = 'flex';
+        await this.bootstrapData();
+        pollingEngine.start();
+      }
     } else {
-      this.mainLayout.style.display = 'none';
-      this.authModal.open('login');
+      authed = await playFabService.tryAutoLogin();
+      if (authed) {
+        this.mainLayout.style.display = 'flex';
+        await this.bootstrapData();
+        pollingEngine.start();
+      } else {
+        this.mainLayout.style.display = 'none';
+        this.authModal.open('login');
+      }
     }
 
     if (window.location.hash.includes('invite=')) {

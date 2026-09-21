@@ -107,6 +107,8 @@ export class Sidebar {
               <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-terms-btn">Terms</button>
               <span style="color: var(--border-medium); font-size: 10px;">•</span>
+              <button type="button" class="footer-link-btn" id="footer-copyright-btn">Copyright</button>
+              <span style="color: var(--border-medium); font-size: 10px;">•</span>
               <button type="button" class="footer-link-btn" id="footer-credits-btn">Credits</button>
               <span class="footer-version-tag" style="color: var(--text-muted); font-size: 11px; font-weight: 700; margin-left: auto;">6.0</span>
             </div>
@@ -199,6 +201,9 @@ export class Sidebar {
 
     const termsBtn = this.container.querySelector('#footer-terms-btn');
     termsBtn?.addEventListener('click', () => this.callbacks.onOpenLegalModal('terms'));
+
+    const copyrightBtn = this.container.querySelector('#footer-copyright-btn');
+    copyrightBtn?.addEventListener('click', () => this.callbacks.onOpenLegalModal('copyright'));
 
     const creditsBtn = this.container.querySelector('#footer-credits-btn');
     creditsBtn?.addEventListener('click', () => this.callbacks.onOpenCreditsModal());

@@ -59,7 +59,7 @@ export class AuthModal {
       submitBtn.disabled = loading;
       submitBtn.textContent = loading 
         ? 'Connecting...' 
-        : (this.mode === 'login' ? 'Sign In' : 'Register Account');
+        : (this.mode === 'login' ? 'Login' : 'Register');
     }
     const forgotBtn = this.container.querySelector('#forgot-submit-btn');
     if (forgotBtn) {
@@ -74,10 +74,6 @@ export class AuthModal {
       return;
     }
 
-    let title = 'Sign In';
-    if (this.mode === 'register') title = 'Create Account';
-    if (this.mode === 'forgot') title = 'Reset Password';
-
     this.container.innerHTML = `
       <div style="position: fixed; inset: 0; z-index: 10000; background: #090909; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
         <div style="width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px;">
@@ -90,28 +86,43 @@ export class AuthModal {
             <h1 style="font-size: 20px; font-weight: 700; letter-spacing: 1px; color: #ffffff; margin: 0;">PULSE</h1>
           </div>
 
-          <div class="modal-card" style="width: 100%; border: 1px solid var(--border-medium); background: #121212;">
-            <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0;">
-              <h3 class="modal-title" style="font-size: 16px;">${title}</h3>
+          ${this.mode === 'expired' ? `
+            <div class="modal-card" style="width: 100%; border: 1px solid var(--border-medium); background: #121212;">
+              <div class="modal-header" style="flex-direction: column; align-items: center; justify-content: center; border-bottom: none; padding-bottom: 0; gap: 6px; text-align: center;">
+                <h3 class="modal-title" style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0;">Your Logged out</h3>
+                <span style="font-size: 13px; font-weight: 500; color: var(--text-muted);">bc you auth expired</span>
+              </div>
+
+              <div class="modal-body" style="padding-top: 20px; display: flex; flex-direction: column; gap: 14px;">
+                <button type="button" class="form-btn-submit" id="auth-expired-logout-btn" style="padding: 12px; font-size: 14px; font-weight: 700; width: 100%;">
+                  Logout
+                </button>
+              </div>
             </div>
-
-            <div class="modal-body" style="padding-top: 14px;">
-              <div class="auth-tabs" style="margin-bottom: 16px;">
-                <button type="button" class="auth-tab ${this.mode === 'login' ? 'active' : ''}" id="tab-login-btn">
-                  Sign In
-                </button>
-                <button type="button" class="auth-tab ${this.mode === 'register' ? 'active' : ''}" id="tab-register-btn">
-                  Register
-                </button>
+          ` : `
+            <div class="modal-card" style="width: 100%; border: 1px solid var(--border-medium); background: #121212;">
+              <div class="modal-header" style="flex-direction: column; align-items: center; justify-content: center; border-bottom: none; padding-bottom: 0; gap: 4px;">
+                <h3 class="modal-title" style="font-size: 18px; font-weight: 700; letter-spacing: 0.5px; color: #ffffff; margin: 0;">axk-auth</h3>
+                <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: lowercase;">${this.mode === 'login' ? 'login' : (this.mode === 'register' ? 'register' : 'reset password')}</span>
               </div>
 
-              <div class="form-error-banner" id="auth-error-banner" style="${this.error ? 'display: block;' : 'display: none;'} margin-bottom: 14px;">
-                <span>${this.escapeHtml(this.error || '')}</span>
-              </div>
+              <div class="modal-body" style="padding-top: 14px;">
+                <div class="auth-tabs" style="margin-bottom: 16px;">
+                  <button type="button" class="auth-tab ${this.mode === 'login' ? 'active' : ''}" id="tab-login-btn">
+                    Login
+                  </button>
+                  <button type="button" class="auth-tab ${this.mode === 'register' ? 'active' : ''}" id="tab-register-btn">
+                    Register
+                  </button>
+                </div>
 
-              <div id="auth-success-banner" style="${this.successMessage ? 'display: block;' : 'display: none;'} padding: 10px 12px; background: #181818; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: #ffffff; font-size: 12px; margin-bottom: 14px;">
-                ${this.escapeHtml(this.successMessage || '')}
-              </div>
+                <div class="form-error-banner" id="auth-error-banner" style="${this.error ? 'display: block;' : 'display: none;'} margin-bottom: 14px;">
+                  <span>${this.escapeHtml(this.error || '')}</span>
+                </div>
+
+                <div id="auth-success-banner" style="${this.successMessage ? 'display: block;' : 'display: none;'} padding: 10px 12px; background: #181818; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); color: #ffffff; font-size: 12px; margin-bottom: 14px;">
+                  ${this.escapeHtml(this.successMessage || '')}
+                </div>
 
               ${this.mode === 'forgot' ? `
                 <form id="forgot-form" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px;">
@@ -133,7 +144,7 @@ export class AuthModal {
                   </button>
 
                   <div style="text-align: center;">
-                    <button type="button" class="footer-link-btn" id="back-to-login-btn">Back to Sign In</button>
+                    <button type="button" class="footer-link-btn" id="back-to-login-btn">Back to Login</button>
                   </div>
                 </form>
               ` : `
@@ -203,17 +214,20 @@ export class AuthModal {
                   </div>
 
                   <button type="submit" class="form-btn-submit" id="auth-submit-btn">
-                    ${this.mode === 'login' ? 'Sign In' : 'Register Account'}
+                    ${this.mode === 'login' ? 'Login' : 'Register'}
                   </button>
                 </form>
               `}
             </div>
           </div>
+        `}
 
           <div style="display: flex; justify-content: center; align-items: center; gap: 8px;">
             <button type="button" class="footer-link-btn" id="auth-privacy-btn">Privacy</button>
             <span style="color: var(--border-medium); font-size: 10px;">•</span>
             <button type="button" class="footer-link-btn" id="auth-terms-btn">Terms</button>
+            <span style="color: var(--border-medium); font-size: 10px;">•</span>
+            <button type="button" class="footer-link-btn" id="auth-copyright-btn">Copyright</button>
             <span style="color: var(--border-medium); font-size: 10px;">•</span>
             <button type="button" class="footer-link-btn" id="auth-credits-btn">Credits</button>
           </div>
@@ -225,6 +239,18 @@ export class AuthModal {
   }
 
   attachEvents() {
+    const expiredLogoutBtn = this.container.querySelector('#auth-expired-logout-btn');
+    expiredLogoutBtn?.addEventListener('click', () => {
+      playFabService.clearSession();
+      this.mode = 'login';
+      this.error = null;
+      this.successMessage = null;
+      this.render();
+      if (this.callbacks.onLogout) {
+        this.callbacks.onLogout();
+      }
+    });
+
     const identInput = this.container.querySelector('#auth-identifier');
     identInput?.addEventListener('input', (e) => {
       this.formData.identifier = e.target.value;
@@ -302,6 +328,11 @@ export class AuthModal {
     const termsBtn = this.container.querySelector('#auth-terms-btn');
     termsBtn?.addEventListener('click', () => {
       if (this.callbacks.onOpenLegal) this.callbacks.onOpenLegal('terms');
+    });
+
+    const copyrightBtn = this.container.querySelector('#auth-copyright-btn');
+    copyrightBtn?.addEventListener('click', () => {
+      if (this.callbacks.onOpenLegal) this.callbacks.onOpenLegal('copyright');
     });
 
     const credBtn = this.container.querySelector('#auth-credits-btn');

@@ -3,10 +3,32 @@ import { appState } from './state.js';
 export const PLAYFAB_TITLE_ID = "133616";
 const PLAYFAB_API_BASE = `https://${PLAYFAB_TITLE_ID}.playfabapi.com/Client`;
 
+function getCookie(name) {
+  try {
+    const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+    return match ? decodeURIComponent(match[3]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setCookie(name, value) {
+  try {
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+  } catch {}
+}
+
+function deleteCookie(name) {
+  try {
+    document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+  } catch {}
+}
+
 class PlayFabService {
   constructor() {
-    this.sessionTicket = localStorage.getItem("pulse_session_ticket") || null;
-    this.playFabId = localStorage.getItem("pulse_playfab_id") || null;
+    this.sessionTicket = localStorage.getItem("pulse_session_ticket") || getCookie("axk_auth_ticket") || getCookie("pulse_session_ticket") || null;
+    this.playFabId = localStorage.getItem("pulse_playfab_id") || getCookie("pulse_playfab_id") || null;
     this.currentUser = null;
     this.lastSendTimestamp = 0;
     this.userCache = new Map();
@@ -14,13 +36,37 @@ class PlayFabService {
     this.fileCache = new Map();
     this.fileInFlight = new Map();
     this.pendingRequests = 0;
+    this.onSessionExpired = null;
 
-    const storedUser = localStorage.getItem("pulse_user");
+    const storedUser = localStorage.getItem("pulse_user") || getCookie("pulse_user") || getCookie("axk_auth_user");
     if (storedUser) {
       try {
         this.currentUser = JSON.parse(storedUser);
       } catch {
         this.currentUser = null;
+      }
+    }
+
+    if (!this.sessionTicket || !this.currentUser) {
+      const sharedSessionRaw = getCookie("axk_auth_session") || getCookie("pulse_shared_auth");
+      if (sharedSessionRaw) {
+        try {
+          const parsed = JSON.parse(sharedSessionRaw);
+          if (parsed && parsed.sessionTicket) {
+            this.sessionTicket = parsed.sessionTicket;
+            this.playFabId = parsed.playFabId || this.playFabId;
+            this.currentUser = parsed.user || this.currentUser;
+            if (this.sessionTicket) {
+              localStorage.setItem("pulse_session_ticket", this.sessionTicket);
+            }
+            if (this.playFabId) {
+              localStorage.setItem("pulse_playfab_id", this.playFabId);
+            }
+            if (this.currentUser) {
+              localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+            }
+          }
+        } catch {}
       }
     }
   }
@@ -52,6 +98,17 @@ class PlayFabService {
     localStorage.setItem("pulse_session_ticket", this.sessionTicket);
     localStorage.setItem("pulse_playfab_id", this.playFabId);
     localStorage.setItem("pulse_user", JSON.stringify(this.currentUser));
+
+    setCookie("pulse_session_ticket", this.sessionTicket);
+    setCookie("pulse_playfab_id", this.playFabId);
+    setCookie("pulse_user", JSON.stringify(this.currentUser));
+    setCookie("axk_auth_ticket", this.sessionTicket);
+    setCookie("axk_auth_session", JSON.stringify({
+      sessionTicket: this.sessionTicket,
+      playFabId: this.playFabId,
+      user: this.currentUser
+    }));
+
     if (this.playFabId) {
       this.userCache.set(this.playFabId, {
         displayName: this.currentUser.displayName,
@@ -70,30 +127,52 @@ class PlayFabService {
     localStorage.removeItem("pulse_playfab_id");
     localStorage.removeItem("pulse_user");
     localStorage.removeItem("pulse_auth_store");
+    deleteCookie("pulse_session_ticket");
+    deleteCookie("pulse_playfab_id");
+    deleteCookie("pulse_user");
+    deleteCookie("pulse_auth_store");
+    deleteCookie("axk_auth_ticket");
+    deleteCookie("axk_auth_session");
+    deleteCookie("axk_auth_store");
+    deleteCookie("axk_auth_user");
+    deleteCookie("pulse_shared_auth");
   }
 
   saveCredentials(identifier, password) {
     try {
-      localStorage.setItem("pulse_auth_store", JSON.stringify({
+      const payload = JSON.stringify({
         identifier: String(identifier || "").trim(),
         password: String(password || "")
-      }));
+      });
+      localStorage.setItem("pulse_auth_store", payload);
+      setCookie("pulse_auth_store", payload);
+      setCookie("axk_auth_store", payload);
     } catch {}
   }
 
   getSavedCredentials() {
     try {
-      const raw = localStorage.getItem("pulse_auth_store");
+      const raw = localStorage.getItem("pulse_auth_store") || getCookie("axk_auth_store") || getCookie("pulse_auth_store");
       if (raw) return JSON.parse(raw);
     } catch {}
     return null;
   }
 
+  async validateSession() {
+    if (!this.sessionTicket) return false;
+    try {
+      const res = await this.post("GetAccountInfo", {}, true);
+      return !!(res && res.AccountInfo);
+    } catch (err) {
+      return false;
+    }
+  }
+
   async tryAutoLogin() {
     if (this.sessionTicket && this.currentUser) {
       try {
-        await this.post("GetAccountInfo", {}, true);
-        return true;
+        const valid = await this.validateSession();
+        if (valid) return true;
       } catch {}
     }
     const creds = this.getSavedCredentials();
@@ -151,10 +230,13 @@ class PlayFabService {
         return await this.post(endpoint, payload, useAuth, attempt + 1);
       }
 
-      if (useAuth && attempt === 0 && (data.code === 401 || errLower.includes("ticket") || errLower.includes("authenticated"))) {
+      if (useAuth && attempt === 0 && (data.code === 401 || errLower.includes("ticket") || errLower.includes("authenticated") || errLower.includes("expired") || data.errorCode === 1074)) {
         const reauthed = await this.tryAutoLogin();
         if (reauthed) {
           return await this.post(endpoint, payload, useAuth, attempt + 1);
+        }
+        if (typeof this.onSessionExpired === 'function') {
+          this.onSessionExpired();
         }
       }
       const errorObj = new Error(errMessage);

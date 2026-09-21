@@ -149,7 +149,6 @@
   - Replaced GIF catalog in `MessageInput.js` with 26 verified active Tenor media URLs across Gaming, Anime, Cats, Dogs, Memes, Party, and Reactions.
   - Added Favorite GIFs system (`pulse_fav_gifs` localStorage) with dedicated `★ Favs` category tab.
   - Added star (★) toggles on all GIF cards to save and remove favorites.
-  - Added `+ Fav URL` button in GIF popover header to add custom GIF links to favorites with label support.
 - [x] **Member Sidebar Role Grouping & Hierarchy Overhaul**:
   - Unified member grouping in `MemberList.js` so default members and users without hoisted roles are cleanly grouped under a single `MEMBERS` section, eliminating duplicate `MEMBER` / `MEMBERS` split headers.
   - Prioritized Server Owner at the top under `OWNER` section with dedicated `★ Owner` badge if no custom hoisted role is assigned.
@@ -158,4 +157,22 @@
   - Incremented version to `6.0.0` in `package.json`.
   - Updated version badges to `6.0` across `Sidebar.js`, `SettingsModal.js`, `LegalModal.js`, `CreditsModal.js`, and `ShortcutsModal.js`.
   - Updated `map.txt` with architectural changes.
+- [x] **Add Copyright Tab & Attribution**:
+  - Added dedicated Copyright tab in `LegalModal.js` stating that Pulse was made by "akidindev".
+  - Integrated Copyright modal triggers in `SettingsModal.js`, `Sidebar.js`, and `AuthModal.js`.
+  - Updated `map.txt`.
+- [x] **Auth Modal Header Customization**:
+  - Updated `AuthModal.js` header to display "axk-auth" with the action ("login", "register", or "reset password") directly beneath it.
+  - Updated `map.txt`.
+- [x] **Shared Auth Cookie Linking**:
+  - Implemented bidirectional root cookie sync (`axk_auth_ticket`, `axk_auth_session`, `axk_auth_store`, `pulse_session_ticket`, `pulse_user`) in `playfab.js` with `path=/` and `SameSite=Lax` for cross-app login sharing.
+- [x] **Invalid Auth Key & Session Expiry Screen**:
+  - Implemented auth ticket validation in `playfab.js` and session expiry handling in `main.js`.
+  - Added session expired view in `AuthModal.js` with "Your Logged out", "bc you auth expired", and a large logout button.
+  - Updated `map.txt`.
+- [x] **Tab Cloaking & Panic System**:
+  - Implemented Tab Cloaking presets (Google Classroom, Google Drive, Google Docs, Desmos, Khan Academy, Canvas, Bing, Wikipedia, Default) with dynamic page title and favicon masking in `src/services/cloak.js`.
+  - Added dedicated "Cloak & Panic" tab in `SettingsModal.js` with Tab Cloaking dropdown, Panic Key Trigger, Panic Redirect Destination, and "Open in about:blank Frame" launcher.
+  - Initialized cloak persistence on startup in `main.js`.
+  - Updated `map.txt`.
 

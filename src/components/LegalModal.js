@@ -23,12 +23,16 @@ export class LegalModal {
       return;
     }
 
+    let titleText = 'Privacy Policy';
+    if (this.tab === 'terms') titleText = 'Terms of Service';
+    if (this.tab === 'copyright') titleText = 'Copyright';
+
     this.container.innerHTML = `
       <div class="modal-overlay" id="legal-modal-overlay">
         <div class="modal-card" style="max-width: 540px;">
           <div class="modal-header">
             <div class="modal-title-box" style="display: flex; align-items: center; gap: 8px;">
-              <h3 class="modal-title">${this.tab === 'privacy' ? 'Privacy Policy' : 'Terms of Service'}</h3>
+              <h3 class="modal-title">${titleText}</h3>
               <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); background: var(--bg-card); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-subtle);">6.0</span>
             </div>
             <button class="modal-close-btn" id="legal-close-btn" type="button">
@@ -46,6 +50,9 @@ export class LegalModal {
               </button>
               <button type="button" class="auth-tab ${this.tab === 'terms' ? 'active' : ''}" id="legal-tab-terms">
                 Terms of Service
+              </button>
+              <button type="button" class="auth-tab ${this.tab === 'copyright' ? 'active' : ''}" id="legal-tab-copyright">
+                Copyright
               </button>
             </div>
 
@@ -70,7 +77,7 @@ export class LegalModal {
                 <h4 class="legal-title">5. Data Retention</h4>
                 <p class="legal-text">Channels retain the most recent 100 messages to balance performance and storage limits. Users can request account removal through PlayFab management.</p>
               </div>
-            ` : `
+            ` : this.tab === 'terms' ? `
               <div class="legal-section">
                 <h4 class="legal-title">1. Acceptance of Terms</h4>
                 <p class="legal-text">By using Pulse, you agree to comply with applicable network regulations, acceptable use guidelines, and these Terms of Service.</p>
@@ -90,6 +97,23 @@ export class LegalModal {
               <div class="legal-section">
                 <h4 class="legal-title">5. Termination</h4>
                 <p class="legal-text">Accounts violating these policies may be restricted or suspended by the administrator.</p>
+              </div>
+            ` : `
+              <div class="legal-section">
+                <h4 class="legal-title">1. Authorship & Development</h4>
+                <p class="legal-text">Pulse was made by akidindev.</p>
+              </div>
+              <div class="legal-section">
+                <h4 class="legal-title">2. Copyright Notice</h4>
+                <p class="legal-text">Copyright &copy; 2026 akidindev. All rights reserved.</p>
+              </div>
+              <div class="legal-section">
+                <h4 class="legal-title">3. Intellectual Property Rights</h4>
+                <p class="legal-text">All platform code, architecture, design systems, assets, and documentation are the property of akidindev.</p>
+              </div>
+              <div class="legal-section">
+                <h4 class="legal-title">4. License & Usage</h4>
+                <p class="legal-text">Unauthorized reproduction, distribution, reverse engineering, or modification of the software without permission from akidindev is prohibited.</p>
               </div>
             `}
           </div>
@@ -118,6 +142,12 @@ export class LegalModal {
     const termsTab = this.container.querySelector('#legal-tab-terms');
     termsTab?.addEventListener('click', () => {
       this.tab = 'terms';
+      this.render();
+    });
+
+    const copyrightTab = this.container.querySelector('#legal-tab-copyright');
+    copyrightTab?.addEventListener('click', () => {
+      this.tab = 'copyright';
       this.render();
     });
   }
