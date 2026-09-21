@@ -1045,6 +1045,94 @@ class PlayFabService {
     this.fileInFlight.set(cleanId, reqPromise);
     return await reqPromise;
   }
+
+  async getUserData(keys = []) {
+    if (!this.sessionTicket) return {};
+    try {
+      const payload = Array.isArray(keys) && keys.length > 0 ? { Keys: keys } : {};
+      const res = await this.post("GetUserData", payload, true);
+      const dataObj = {};
+      if (res && res.Data) {
+        for (const [k, item] of Object.entries(res.Data)) {
+          dataObj[k] = item?.Value || "";
+        }
+      }
+      return dataObj;
+    } catch {
+      return {};
+    }
+  }
+
+  async updateUserData(data, permission = "Private") {
+    if (!this.sessionTicket || !data || typeof data !== "object") return false;
+    try {
+      const cleanData = {};
+      for (const [k, v] of Object.entries(data)) {
+        if (k && typeof k === "string") {
+          cleanData[k] = typeof v === "string" ? v : JSON.stringify(v);
+        }
+      }
+      await this.post("UpdateUserData", {
+        Data: cleanData,
+        Permission: permission
+      }, true);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async loadUserSettings() {
+    const data = await this.getUserData(["pulse_user_settings", "void_user_settings", "pulse_theme"]);
+    if (data) {
+      const raw = data.pulse_user_settings || data.void_user_settings;
+      if (raw) {
+        try {
+          return JSON.parse(raw);
+        } catch {}
+      }
+      if (data.pulse_theme) {
+        return { theme: data.pulse_theme };
+      }
+    }
+    return null;
+  }
+
+  async saveUserSettings(settings) {
+    if (!settings || typeof settings !== "object") return false;
+    const payload = JSON.stringify(settings);
+    try {
+      if (typeof setCookie === "function") {
+        setCookie("pulse_user_settings", payload);
+        if (settings.theme) setCookie("pulse_theme", settings.theme);
+      }
+    } catch {}
+
+    try {
+      window.postMessage({
+        type: "PULSE_SETTINGS_SYNC",
+        settings
+      }, "*");
+    } catch {}
+
+    const dataObj = {
+      pulse_user_settings: payload,
+      void_user_settings: payload
+    };
+    if (settings.theme) dataObj.pulse_theme = settings.theme;
+
+    return await this.updateUserData(dataObj, "Private");
+  }
+
+  async loadPulseSettings() {
+    return await this.loadUserSettings();
+  }
+
+  async savePulseSettings(settings) {
+    const current = (await this.loadUserSettings()) || {};
+    const merged = Object.assign({}, current, settings);
+    return await this.saveUserSettings(merged);
+  }
 }
 
 export const playFabService = new PlayFabService();

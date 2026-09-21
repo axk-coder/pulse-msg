@@ -24,7 +24,34 @@ export class SettingsModal {
     this.isOpen = true;
     this.message = null;
     this.error = null;
+    this.currentTheme = localStorage.getItem('pulse_theme') || 'onyx';
+    this.cloakPreset = localStorage.getItem('pulse_cloak_preset') || 'none';
+    this.panicKey = localStorage.getItem('pulse_panic_key') || '`';
+    this.panicUrl = localStorage.getItem('pulse_panic_url') || 'https://google.com';
     this.render();
+    if (playFabService.isAuthenticated()) {
+      playFabService.loadUserSettings().then(s => {
+        if (s && this.isOpen) {
+          if (s.theme) {
+            this.currentTheme = s.theme;
+            localStorage.setItem('pulse_theme', s.theme);
+            document.documentElement.setAttribute('data-theme', s.theme);
+          }
+          if (s.cloak || s.cloakPreset) {
+            this.cloakPreset = s.cloak || s.cloakPreset;
+            localStorage.setItem('pulse_cloak_preset', this.cloakPreset);
+            applyCloak(this.cloakPreset);
+          }
+          if (s.panicKey !== undefined) {
+            this.panicKey = s.panicKey;
+            this.panicUrl = s.panicUrl || 'https://google.com';
+            localStorage.setItem('pulse_panic_key', this.panicKey);
+            localStorage.setItem('pulse_panic_url', this.panicUrl);
+          }
+          this.render();
+        }
+      }).catch(() => {});
+    }
   }
 
   close() {
@@ -545,6 +572,12 @@ export class SettingsModal {
           this.currentTheme = themeKey;
           document.documentElement.setAttribute('data-theme', themeKey);
           localStorage.setItem('pulse_theme', themeKey);
+          playFabService.saveUserSettings({
+            theme: themeKey,
+            cloakPreset: this.cloakPreset,
+            panicKey: this.panicKey,
+            panicUrl: this.panicUrl
+          });
           this.render();
         }
       });
@@ -568,6 +601,12 @@ export class SettingsModal {
       localStorage.setItem('pulse_panic_key', keyVal);
       localStorage.setItem('pulse_panic_url', urlVal);
       applyCloak(cloakVal);
+      playFabService.saveUserSettings({
+        theme: this.currentTheme,
+        cloakPreset: cloakVal,
+        panicKey: keyVal,
+        panicUrl: urlVal
+      });
       this.message = 'Cloak and panic settings saved successfully';
       this.render();
     });

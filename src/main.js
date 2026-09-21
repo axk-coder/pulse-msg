@@ -300,6 +300,25 @@ class PulseApp {
       appState.setDMs(dms);
       appState.setFriends(friends);
 
+      try {
+        const cloudSettings = await playFabService.loadUserSettings();
+        if (cloudSettings) {
+          if (cloudSettings.theme) {
+            document.documentElement.setAttribute("data-theme", cloudSettings.theme);
+            localStorage.setItem("pulse_theme", cloudSettings.theme);
+          }
+          if (cloudSettings.cloak || cloudSettings.cloakPreset) {
+            const cloakVal = cloudSettings.cloak || cloudSettings.cloakPreset;
+            applyCloak(cloakVal);
+            localStorage.setItem("pulse_cloak_preset", cloakVal);
+          }
+          if (cloudSettings.panicKey !== undefined) {
+            localStorage.setItem("pulse_panic_key", cloudSettings.panicKey);
+            localStorage.setItem("pulse_panic_url", cloudSettings.panicUrl || "https://google.com");
+          }
+        }
+      } catch {}
+
       const restored = appState.restoreLastContext();
       if (!restored) {
         if (servers.length > 0) {
@@ -371,4 +390,23 @@ window.addEventListener('keydown', (e) => {
 
 window.addEventListener('DOMContentLoaded', () => {
   window.pulseApp = new PulseApp();
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "PULSE_SETTINGS_SYNC" && e.data.settings) {
+    const s = e.data.settings;
+    if (s.theme) {
+      document.documentElement.setAttribute("data-theme", s.theme);
+      localStorage.setItem("pulse_theme", s.theme);
+    }
+    if (s.cloak || s.cloakPreset) {
+      const c = s.cloak || s.cloakPreset;
+      applyCloak(c);
+      localStorage.setItem("pulse_cloak_preset", c);
+    }
+    if (s.panicKey !== undefined) {
+      localStorage.setItem("pulse_panic_key", s.panicKey);
+      localStorage.setItem("pulse_panic_url", s.panicUrl || "https://google.com");
+    }
+  }
 });
